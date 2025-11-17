@@ -5,9 +5,6 @@ import { Stack } from 'expo-router';
 import React from 'react';
 
 const queryClient = new QueryClient();
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
 
 export default function RootLayout() {
 

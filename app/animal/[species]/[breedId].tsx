@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Image, ScrollView } from "react-native";
 
 export default function BreedDetail() {
-  const { species, breedId } = useLocalSearchParams<{ species: string; breedId: string }>();
+  const { species, breedId } = useLocalSearchParams();
 
   const [breed, setBreed] = useState<any>(null);
   const [loading, setLoading] = useState(true);

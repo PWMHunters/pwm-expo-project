@@ -12,7 +12,6 @@ export default function SpeciesScreen() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  // API URLs para cada espécie
   const apiUrls: Record<string, string> = {
     dog: "https://api.thedogapi.com/v1/breeds",
     cat: "https://api.thecatapi.com/v1/breeds",
@@ -55,7 +54,6 @@ export default function SpeciesScreen() {
     fetchData();
   }, [species]);
 
-  // Filtro de busca
   useEffect(() => {
     const f = breeds.filter((b) =>
       b.name.toLowerCase().includes(search.toLowerCase())
@@ -101,18 +99,25 @@ export default function SpeciesScreen() {
 
       <FlatList
         data={filtered}
+        numColumns={2}
+        columnWrapperStyle={{ justifyContent: "space-between" }}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
+          activeOpacity={0.8}
             onPress={() =>
                 router.push({
                 pathname: `/animal/[species]/[breedId]`,
                 params: { species, breedId: item.id.toString() },
     })
     }
+    style={{ width: "48%", marginBottom: 16 }}
           >
             <Card
+            disabled={true}
               style={{
+                padding: 8,
+                width: "100%",
                 marginBottom: 12,
                 flexDirection: "row",
                 alignItems: "center",

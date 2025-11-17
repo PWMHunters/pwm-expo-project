@@ -27,5 +27,5 @@ return (
             {name}
         </Text>
     </Card>
-  );
+);
 }
