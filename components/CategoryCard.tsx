@@ -9,7 +9,7 @@ onPress: () => void;
 };
 
 export default function CategoryCard({ name, image, onPress }: Props) {
-return (
+    return (
     <Card
         onPress={onPress}
         style={{

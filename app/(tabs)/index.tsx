@@ -6,7 +6,6 @@ import { especiesData } from "../../data/especies";
 
 export default function Home() {
 const router = useRouter();
-
 return (
     <Layout style={{ flex: 1, padding: 16 }}>
     <Text

@@ -13,8 +13,8 @@ export const especiesData = [
     },
     {
         id: '3',
-        name: 'Ave',
-        species:'bird',
+        name: 'Peixe',
+        species:'fish',
         image: "https://cdn-icons-png.flaticon.com/512/3069/3069186.png",
     },
     {
