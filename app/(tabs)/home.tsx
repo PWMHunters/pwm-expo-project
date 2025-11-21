@@ -3,6 +3,7 @@ import { Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { Layout, Text, Card } from '@ui-kitten/components';
 import { FavoritesContext } from '../context/FavoritesContext';
 import api from '../api/dogApi';
+import { useRouter } from 'expo-router';
 
 interface Dog {
   id?: string;
@@ -10,7 +11,8 @@ interface Dog {
   breeds?: { name: string }[];
 }
 
-export default function HomeScreen({ navigation }: any) {
+export default function HomeScreen() {
+  const router = useRouter();
   const { favoritos } = useContext(FavoritesContext);
 
   const [recomendados, setRecomendados] = useState<Dog[]>([]);
@@ -57,7 +59,7 @@ export default function HomeScreen({ navigation }: any) {
 
         <TouchableOpacity
           style={[styles.mainCard, { backgroundColor: '#4A90E2' }]}
-          onPress={() => navigation.navigate('Explorar')}
+          onPress={() => router.push("/(tabs)/explorar")}
         >
           <Text style={styles.mainCardTitle}>🔍 Explorar</Text>
           <Text style={styles.mainCardSub}>Veja todas as raças</Text>
@@ -65,7 +67,7 @@ export default function HomeScreen({ navigation }: any) {
 
         <TouchableOpacity
           style={[styles.mainCard, { backgroundColor: '#E24A4A' }]}
-          onPress={() => navigation.navigate('Favoritos')}
+          onPress={() => router.push("/(tabs)/favoritos")}
         >
           <Text style={styles.mainCardTitle}>❤️ Favoritos</Text>
           <Text style={styles.mainCardSub}>
