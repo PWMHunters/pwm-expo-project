@@ -4,7 +4,6 @@ import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
 import { EvaIconsPack } from '@ui-kitten/eva-icons';
 import { Stack } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
 import { FavoritesProvider } from './context/FavoritesContext';
 
 const queryClient = new QueryClient();
