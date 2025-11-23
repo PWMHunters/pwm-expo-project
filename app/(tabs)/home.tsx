@@ -1,7 +1,9 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
-import api from '../api/dogApi';
+import React, { useContext, useEffect, useState } from 'react';
+import { Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { Layout, Text, Card } from '@ui-kitten/components';
 import { FavoritesContext } from '../context/FavoritesContext';
+import api from '../api/dogApi';
+import { useRouter } from 'expo-router';
 
 interface Dog {
   id?: string;
@@ -10,72 +12,149 @@ interface Dog {
 }
 
 export default function HomeScreen() {
-  const [cachorros, setCachorros] = useState<Dog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { addFavorite, favoritos } = useContext(FavoritesContext);
+  const router = useRouter();
+  const { favoritos } = useContext(FavoritesContext);
+
+  const [recomendados, setRecomendados] = useState<Dog[]>([]);
 
   useEffect(() => {
-    async function fetchDogs() {
+    async function fetchRecommended() {
       try {
-        const res = await api.get('images/search', { params: { limit: 10 } });
-        setCachorros(res.data);
+        const res = await api.get('images/search', { params: { limit: 3 } });
+        setRecomendados(res.data);
       } catch (error) {
-        console.log('Erro ao buscar cachorros:', error);
-      } finally {
-        setLoading(false);
+        console.log('Erro ao carregar recomendados:', error);
       }
     }
-    fetchDogs();
+    fetchRecommended();
   }, []);
 
-  const renderDog = ({ item }: { item: Dog }) => {
-    const isFavorito = item.id && favoritos.some((d) => d.id === item.id);
-
+  const renderRecomendado = ({ item }: { item: Dog }) => {
     return (
-      <TouchableOpacity style={styles.card}>
-        {item.url ? (
-          <Image source={{ uri: item.url }} style={styles.foto} />
-        ) : (
-          <View style={[styles.foto, { backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center' }]}>
-            <Text>Sem imagem</Text>
-          </View>
-        )}
-        <Text style={styles.nome}>
-          {item.breeds && item.breeds.length > 0 ? item.breeds[0].name : 'Desconhecido'}
+      <Card style={styles.recCard}>
+        <Image
+          source={{ uri: item.url || 'https://placehold.co/300x200' }}
+          style={styles.recImage}
+        />
+        <Text category="s1" style={styles.recTitle}>
+          {item.breeds?.[0]?.name || 'Raça desconhecida'}
         </Text>
-
-        <TouchableOpacity
-          style={[styles.btnFavorito, isFavorito && { backgroundColor: '#f00' }]}
-          onPress={() => addFavorite(item)}
-        >
-          <Text style={styles.textoBtn}>{isFavorito ? 'Favorito ❤️' : 'Adicionar aos Favoritos'}</Text>
-        </TouchableOpacity>
-      </TouchableOpacity>
+      </Card>
     );
   };
 
-  if (loading) return <View style={styles.loading}><Text>Carregando...</Text></View>;
-
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.titulo}>Cachorros Disponíveis</Text>
+    <Layout style={styles.container}>
+      
+      {/* TÍTULO */}
+      <Text category="h4" style={styles.titulo}>
+        Olá 👋
+      </Text>
+      <Text category="s1" style={styles.subtitulo}>
+        Pronto para descobrir novas raças hoje?
+      </Text>
+
+      {/* CARDS PRINCIPAIS */}
+      <Layout style={styles.row}>
+
+        <TouchableOpacity
+          style={[styles.mainCard, { backgroundColor: '#4A90E2' }]}
+          onPress={() => router.push("/(tabs)/explorar")}
+        >
+          <Text style={styles.mainCardTitle}>🔍 Explorar</Text>
+          <Text style={styles.mainCardSub}>Veja todas as raças</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.mainCard, { backgroundColor: '#E24A4A' }]}
+          onPress={() => router.push("/(tabs)/favoritos")}
+        >
+          <Text style={styles.mainCardTitle}>❤️ Favoritos</Text>
+          <Text style={styles.mainCardSub}>
+            {favoritos.length} salvos
+          </Text>
+        </TouchableOpacity>
+
+      </Layout>
+
+      {/* ESTATÍSTICAS */}
+      <Text category="h6" style={styles.statsTitle}>Suas Estatísticas</Text>
+
+      <Layout style={styles.statsBox}>
+        <Text category="s1">Favoritos: {favoritos.length}</Text>
+        <Text appearance="hint">Raças registradas na app</Text>
+      </Layout>
+
+      {/* RECOMENDADOS */}
+      <Text category="h6" style={styles.statsTitle}>Recomendados Hoje</Text>
+
       <FlatList
-        data={cachorros}
-        keyExtractor={(item, index) => item.id?.toString() || index.toString()}
-        renderItem={renderDog}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        data={recomendados}
+        keyExtractor={(item) => item.id || Math.random().toString()}
+        renderItem={renderRecomendado}
+        horizontal
+        showsHorizontalScrollIndicator={false}
       />
-    </SafeAreaView>
+    </Layout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', paddingHorizontal: 16 },
-  titulo: { fontSize: 24, fontWeight: 'bold', marginVertical: 16 },
-  card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 16, overflow: 'hidden', padding: 8 },
-  foto: { width: '100%', height: 200, borderRadius: 12 },
-  nome: { fontSize: 18, fontWeight: 'bold', marginTop: 8 },
-  btnFavorito: { marginTop: 8, padding: 8, backgroundColor: '#0a84ff', borderRadius: 8, alignItems: 'center' },
-  textoBtn: { color: '#fff', fontWeight: 'bold' },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, padding: 18 },
+  titulo: { fontWeight: 'bold', marginBottom: 4 },
+  subtitulo: { marginBottom: 22 },
+  
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+
+  mainCard: {
+    width: '48%',
+    padding: 18,
+    borderRadius: 16,
+  },
+
+  mainCardTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+
+  mainCardSub: {
+    marginTop: 6,
+    fontSize: 14,
+    color: '#F0F0F0',
+  },
+
+  statsTitle: {
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+
+  statsBox: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 14,
+    backgroundColor: '#EEE',
+    marginBottom: 22,
+  },
+
+  recCard: {
+    width: 180,
+    marginRight: 16,
+    borderRadius: 16,
+  },
+
+  recImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: 14,
+  },
+
+  recTitle: {
+    marginTop: 8,
+    fontWeight: '600',
+  },
 });
