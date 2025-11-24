@@ -1,4 +1,3 @@
-// app/tabs/abrigo.tsx
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
 

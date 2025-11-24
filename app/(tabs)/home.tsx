@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image, FlatList, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Layout, Text, Card } from '@ui-kitten/components';
 import { FavoritesContext } from '../context/FavoritesContext';
 import api from '../api/dogApi';
@@ -44,58 +44,59 @@ export default function HomeScreen() {
   };
 
   return (
-    <Layout style={styles.container}>
-      
-      {/* TÍTULO */}
-      <Text category="h4" style={styles.titulo}>
-        Olá 👋
-      </Text>
-      <Text category="s1" style={styles.subtitulo}>
-        Pronto para descobrir novas raças hoje?
-      </Text>
+    <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      <Layout style={styles.container}>
+        
+        {/* TÍTULO */}
+        <Text category="h4" style={styles.titulo}>
+          Olá 👋
+        </Text>
+        <Text category="s1" style={styles.subtitulo}>
+          Pronto para descobrir novas raças hoje?
+        </Text>
 
-      {/* CARDS PRINCIPAIS */}
-      <Layout style={styles.row}>
+        {/* CARDS PRINCIPAIS */}
+        <Layout style={styles.row}>
+          <TouchableOpacity
+            style={[styles.mainCard, { backgroundColor: '#4A90E2' }]}
+            onPress={() => router.push("/(tabs)/explorar")}
+          >
+            <Text style={styles.mainCardTitle}>🔍 Explorar</Text>
+            <Text style={styles.mainCardSub}>Veja todas as raças</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.mainCard, { backgroundColor: '#4A90E2' }]}
-          onPress={() => router.push("/(tabs)/explorar")}
-        >
-          <Text style={styles.mainCardTitle}>🔍 Explorar</Text>
-          <Text style={styles.mainCardSub}>Veja todas as raças</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.mainCard, { backgroundColor: '#E24A4A' }]}
+            onPress={() => router.push("/(tabs)/favoritos")}
+          >
+            <Text style={styles.mainCardTitle}>❤️ Favoritos</Text>
+            <Text style={styles.mainCardSub}>
+              {favoritos.length} salvos
+            </Text>
+          </TouchableOpacity>
+        </Layout>
 
-        <TouchableOpacity
-          style={[styles.mainCard, { backgroundColor: '#E24A4A' }]}
-          onPress={() => router.push("/(tabs)/favoritos")}
-        >
-          <Text style={styles.mainCardTitle}>❤️ Favoritos</Text>
-          <Text style={styles.mainCardSub}>
-            {favoritos.length} salvos
-          </Text>
-        </TouchableOpacity>
+        {/* ESTATÍSTICAS */}
+        <Text category="h6" style={styles.statsTitle}>Suas Estatísticas</Text>
+
+        <Layout style={styles.statsBox}>
+          <Text category="s1">Favoritos: {favoritos.length}</Text>
+          <Text appearance="hint">Raças registradas na app</Text>
+        </Layout>
+
+        {/* RECOMENDADOS */}
+        <Text category="h6" style={styles.statsTitle}>Recomendados Hoje</Text>
+
+        <FlatList
+          data={recomendados}
+          keyExtractor={(item) => item.id || Math.random().toString()}
+          renderItem={renderRecomendado}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        />
 
       </Layout>
-
-      {/* ESTATÍSTICAS */}
-      <Text category="h6" style={styles.statsTitle}>Suas Estatísticas</Text>
-
-      <Layout style={styles.statsBox}>
-        <Text category="s1">Favoritos: {favoritos.length}</Text>
-        <Text appearance="hint">Raças registradas na app</Text>
-      </Layout>
-
-      {/* RECOMENDADOS */}
-      <Text category="h6" style={styles.statsTitle}>Recomendados Hoje</Text>
-
-      <FlatList
-        data={recomendados}
-        keyExtractor={(item) => item.id || Math.random().toString()}
-        renderItem={renderRecomendado}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      />
-    </Layout>
+    </ScrollView>
   );
 }
 
