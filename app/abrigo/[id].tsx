@@ -1,124 +1,142 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   Image,
   StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  SafeAreaView,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import api from '../api/dogApi'; 
-
-type ParamsType = {
-  id?: string;
-  nome?: string;
-  descricao?: string;
-  endereco?: string;
-};
 
 export default function AbrigoDetalhe() {
   const router = useRouter();
-  const params = useLocalSearchParams() as ParamsType;
 
-  const [fotos, setFotos] = useState<string[]>([]);
+  const {
+    nome = '',
+    descricao = '',
+    endereco = '',
+    fotos = '[]',
+    cnpj = '',
+    telefone = '',
+    email = '',
+    horario = '',
+  } = useLocalSearchParams();
 
-  async function carregarFotosRandom() {
-    try {
-      const res = await api.get('/images/search?limit=6');
-      const urls = res.data.map((d: any) => d.url).filter(Boolean);
-      setFotos(urls);
-    } catch (error) {
-      console.log("Erro ao carregar fotos:", error);
-      setFotos([]);
-    }
-  }
-
-  useEffect(() => {
-    carregarFotosRandom();
-  }, []);
+  const fotosArray = JSON.parse(fotos as string);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
-        
-        {/* BOTÃO VOLTAR */}
-        <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
-          <Text style={styles.voltarTexto}>← Voltar</Text>
-        </TouchableOpacity>
+    <ScrollView style={styles.container}>
 
-        {/* DADOS DO ABRIGO */}
-        <Text style={styles.titulo}>{params.nome ?? 'Abrigo'}</Text>
-        {params.endereco ? <Text style={styles.endereco}>📍 {params.endereco}</Text> : null}
-        {params.descricao ? <Text style={styles.descricao}>{params.descricao}</Text> : null}
+      {/* BOTÃO VOLTAR */}
+      <TouchableOpacity style={styles.voltarBtn} onPress={() => router.back()}>
+        <Text style={styles.voltarTexto}>⬅ Voltar</Text>
+      </TouchableOpacity>
 
-        {/* PETS */}
-        <Text style={styles.subtitulo}>Pets do Abrigo</Text>
+      {/* TÍTULO */}
+      <Text style={styles.titulo}>{nome}</Text>
+      <Text style={styles.descricao}>{descricao}</Text>
 
-        {fotos.length === 0 ? (
-          <View style={styles.noFotos}>
-            <Text style={{ color: '#666' }}>Carregando fotos...</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={fotos}
-            keyExtractor={(_, i) => String(i)}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingVertical: 8 }}
-            renderItem={({ item }) => (
-              <View style={styles.petCard}>
-                <Image
-                  source={{ uri: item }}
-                  style={styles.petImg}
-                />
-              </View>
-            )}
-          />
-        )}
-
+      {/* CARROSSEL DE FOTOS */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.carousel}
+      >
+        {fotosArray.map((url: string, index: number) => (
+          <Image key={index} source={{ uri: url }} style={styles.foto} />
+        ))}
       </ScrollView>
-    </SafeAreaView>
+
+      {/* INFORMAÇÕES */}
+      <View style={styles.infoBox}>
+        <Text style={styles.infoTitulo}>Informações do Abrigo</Text>
+
+        <Text style={styles.infoLinha}>📍 Endereço:</Text>
+        <Text style={styles.infoValor}>{endereco}</Text>
+
+        <Text style={styles.infoLinha}>🕒 Horário de Funcionamento:</Text>
+        <Text style={styles.infoValor}>{horario}</Text>
+
+        <Text style={styles.infoLinha}>☎ Telefone:</Text>
+        <Text style={styles.infoValor}>{telefone}</Text>
+
+        <Text style={styles.infoLinha}>✉ E-mail:</Text>
+        <Text style={styles.infoValor}>{email}</Text>
+
+        <Text style={styles.infoLinha}>🧾 CNPJ:</Text>
+        <Text style={styles.infoValor}>{cnpj}</Text>
+      </View>
+
+      <View style={{ height: 40 }} />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  container: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    paddingHorizontal: 16,
+    paddingTop: 30,
+  },
 
-  voltar: { marginBottom: 8 },
-  voltarTexto: { fontSize: 16, color: '#2563EB' },
+  voltarBtn: {
+    paddingVertical: 4,
+    marginBottom: 10,
+  },
 
-  titulo: { fontSize: 26, fontWeight: '700', marginTop: 2, marginBottom: 6 },
-  endereco: { color: '#555', marginBottom: 8 },
-  descricao: { color: '#444', marginBottom: 12, lineHeight: 20 },
+  voltarTexto: {
+    fontSize: 16,
+    color: '#4A90E2',
+    fontWeight: 'bold',
+  },
 
-  subtitulo: { fontSize: 18, fontWeight: '700', marginTop: 12, marginBottom: 8 },
+  titulo: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
 
-  noFotos: {
-    height: 120,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 10,
+  descricao: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 16,
+  },
+
+  carousel: {
+    marginBottom: 22,
+  },
+
+  foto: {
+    width: 260,
+    height: 220,
+    borderRadius: 14,
+    marginRight: 14,
+    backgroundColor: '#EEE',
+  },
+
+  infoBox: {
+    backgroundColor: '#F2F6FF',
+    padding: 16,
+    borderRadius: 16,
+  },
+
+  infoTitulo: {
+    fontSize: 20,
+    fontWeight: 'bold',
     marginBottom: 14,
   },
 
-  petCard: {
-    width: 160,
-    height: 160,
-    marginRight: 12,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#eee',
+  infoLinha: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginTop: 10,
   },
 
-  petImg: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-    backgroundColor: '#ddd',
+  infoValor: {
+    fontSize: 15,
+    color: '#444',
+    marginLeft: 6,
   },
 });
