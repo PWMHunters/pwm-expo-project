@@ -1,15 +1,37 @@
 import React, { createContext, useState, ReactNode } from 'react';
 
-interface Dog {
-  id?: string;
+export interface Dog {
+  id: string | number;
   url?: string;
-  breeds?: { name: string }[];
+  image?: { 
+    url: string;
+  };
+  name?: string;
+  
+  breeds?: { 
+    name: string;
+    temperament?: string;
+    life_span?: string;
+    breed_group?: string;
+    bred_for?: string;
+    origin?: string;
+    weight?: { metric: string; imperial: string };
+    height?: { metric: string; imperial: string };
+  }[];
+
+  temperament?: string;
+  life_span?: string;
+  weight?: { metric: string; imperial: string };
+  height?: { metric: string; imperial: string };
+  breed_group?: string;
+  bred_for?: string;
+  origin?: string;
 }
 
 interface FavoritesContextType {
   favoritos: Dog[];
   addFavorite: (dog: Dog) => void;
-  removeFavorite: (dogId?: string) => void;
+  removeFavorite: (dogId?: string | number) => void;
 }
 
 export const FavoritesContext = createContext<FavoritesContextType>({
@@ -22,13 +44,13 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
   const [favoritos, setFavoritos] = useState<Dog[]>([]);
 
   const addFavorite = (dog: Dog) => {
-    if (!dog.id || favoritos.find((d) => d.id === dog.id)) return;
+    if (!dog.id || favoritos.find((d) => String(d.id) === String(dog.id))) return;
     setFavoritos((prev) => [...prev, dog]);
   };
 
-  const removeFavorite = (dogId?: string) => {
+  const removeFavorite = (dogId?: string | number) => {
     if (!dogId) return;
-    setFavoritos((prev) => prev.filter((d) => d.id !== dogId));
+    setFavoritos((prev) => prev.filter((d) => String(d.id) !== String(dogId)));
   };
 
   return (

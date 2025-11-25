@@ -15,7 +15,6 @@ export const unstable_settings = {
 export default function RootLayout() {
   return (
     <>
-      {/* OBRIGATÓRIO: Registra os ícones para o UI Kitten usar (search-outline, etc) */}
       <IconRegistry icons={EvaIconsPack} />
 
       <ApplicationProvider {...eva} theme={eva.light}>

@@ -2,20 +2,8 @@ import React, { useEffect, useState, useContext } from 'react';
 import { FlatList, Image, StyleSheet, TouchableOpacity, View, ScrollView } from 'react-native';
 import { Layout, Text, Card, Button, Spinner, Input, Icon, Radio, RadioGroup, Divider } from '@ui-kitten/components';
 import api from '../api/dogApi';
-import { FavoritesContext } from '../context/FavoritesContext';
-
-interface Breed {
-  id: number;
-  name: string;
-  temperament?: string;
-  life_span?: string;
-  image?: { url: string };
-  weight?: { metric: string; imperial: string };
-  height?: { metric: string; imperial: string };
-  breed_group?: string;
-  bred_for?: string;
-  origin?: string;
-}
+import { FavoritesContext, Dog } from '../context/FavoritesContext';
+import { translateTemperament, translateBreedGroup, translateGeneric } from '../../src/utils/dogUtils';
 
 const SearchIcon = (props: any) => <Icon {...props} name='search-outline' />;
 const FilterIcon = (props: any) => <Icon {...props} name='funnel-outline' />;
@@ -28,68 +16,8 @@ const LIFE_SPAN_OPTIONS = [
   'Longo (> 15 anos)',
 ];
 
-const translateTemperament = (text?: string) => {
-  if (!text) return 'Desconhecido';
-  const dictionary: Record<string, string> = {
-    "Stubborn": "Teimoso", "Curious": "Curioso", "Playful": "Brincalhão",
-    "Adventurous": "Aventureiro", "Active": "Ativo", "Fun-loving": "Divertido",
-    "Friendly": "Amigável", "Intelligent": "Inteligente", "Loyal": "Leal",
-    "Brave": "Corajoso", "Calm": "Calmo", "Gentle": "Gentil",
-    "Confident": "Confiante", "Loving": "Amoroso", "Protective": "Protetor",
-    "Trainable": "Treinável", "Independent": "Independente", "Alert": "Alerta",
-    "Affectionate": "Afetuoso", "Energetic": "Energético", "Watchful": "Vigilante",
-    "Hardworking": "Trabalhador", "Feisty": "Corajoso", "Docile": "Dócil",
-    "Responsive": "Responsivo", "Composed": "Composto", "Receptive": "Receptivo",
-    "Faithful": "Fiel"
-  };
-  return text.split(', ').map(word => dictionary[word] || word).join(', ');
-};
-
-const translateBreedGroup = (group?: string) => {
-  if (!group) return 'Não classificado';
-  const groups: Record<string, string> = {
-    "Toy": "Toy (Companhia)",
-    "Working": "Trabalho",
-    "Hound": "Hound (Caça/Sabujo)",
-    "Terrier": "Terrier",
-    "Non-Sporting": "Não Esportivo",
-    "Sporting": "Esportivo",
-    "Herding": "Pastoreio",
-    "Mixed": "Misto"
-  };
-  return groups[group] || group;
-};
-
-const translateGeneric = (text?: string) => {
-  if (!text) return 'Desconhecido';
-  
-  let translated = text;
-
-  const terms: Record<string, string> = {
-    "Germany": "Alemanha", "France": "França", "UK": "Reino Unido", "United Kingdom": "Reino Unido",
-    "Scotland": "Escócia", "England": "Inglaterra", "Ireland": "Irlanda", "China": "China",
-    "Japan": "Japão", "Australia": "Austrália", "USA": "EUA", "United States": "Estados Unidos",
-    "Canada": "Canadá", "Russia": "Rússia", "Belgium": "Bélgica", "Spain": "Espanha",
-    "Italy": "Itália", "Switzerland": "Suíça", "Turkey": "Turquia", "Mexico": "México",
-    "Small rodent hunting": "Caça de pequenos roedores",
-    "lapdog": "cão de colo", "Lapdog": "Cão de colo",
-    "hunting": "caça", "Hunting": "Caça",
-    "guard dog": "cão de guarda", "Guarding": "Guarda",
-    "companion": "companhia", "Companion": "Companhia",
-    "herding": "pastoreio", "Herding": "Pastoreio",
-    "retrieving": "buscar caça", "water dog": "cão d'água",
-    "coursing": "corrida", "racing": "corrida", "fighting": "luta"
-  };
-
-  Object.keys(terms).forEach(key => {
-    translated = translated.replace(new RegExp(key, 'g'), terms[key]);
-  });
-
-  return translated;
-};
-
 export default function ExplorarScreen() {
-  const [breeds, setBreeds] = useState<Breed[]>([]);
+  const [breeds, setBreeds] = useState<Dog[]>([]);
   const [loading, setLoading] = useState(true);
   const { favoritos, addFavorite } = useContext(FavoritesContext);
 
@@ -100,7 +28,7 @@ export default function ExplorarScreen() {
   const [temperamentFilter, setTemperamentFilter] = useState('');
 
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
-  const [selectedBreed, setSelectedBreed] = useState<Breed | null>(null);
+  const [selectedBreed, setSelectedBreed] = useState<Dog | null>(null);
 
   useEffect(() => {
     async function fetchBreeds() {
@@ -116,13 +44,13 @@ export default function ExplorarScreen() {
     fetchBreeds();
   }, []);
 
-  const openDetails = (breed: Breed) => {
+  const openDetails = (breed: Dog) => {
     setSelectedBreed(breed);
     setDetailsModalVisible(true);
   };
 
   const filteredBreeds = breeds.filter((breed) => {
-    const matchesName = breed.name.toLowerCase().includes(searchText.toLowerCase());
+    const matchesName = breed.name?.toLowerCase().includes(searchText.toLowerCase());
     const translatedTemp = translateTemperament(breed.temperament).toLowerCase();
     const matchesTemperament = temperamentFilter 
       ? translatedTemp.includes(temperamentFilter.toLowerCase()) 
@@ -139,7 +67,7 @@ export default function ExplorarScreen() {
     return matchesName && matchesTemperament && matchesLifeSpan;
   });
 
-  const renderItem = ({ item }: { item: Breed }) => {
+  const renderItem = ({ item }: { item: Dog }) => {
     const isFavorito = favoritos.some((f) => f.id === String(item.id));
     const lifeSpanTraduzido = item.life_span?.replace('years', 'anos').replace('year', 'ano');
     const temperamentoTraduzido = translateTemperament(item.temperament);
@@ -150,13 +78,15 @@ export default function ExplorarScreen() {
 
     return (
       <Card style={styles.card}>
-        {item.image?.url ? (
-          <Image source={{ uri: item.image.url }} style={styles.image} />
-        ) : (
-          <Layout style={[styles.image, styles.noImg]}>
-            <Text appearance="hint">Sem imagem</Text>
-          </Layout>
-        )}
+        <TouchableOpacity onPress={() => openDetails(item)}>
+          {item.image?.url ? (
+            <Image source={{ uri: item.image.url }} style={styles.image} />
+          ) : (
+            <Layout style={[styles.image, styles.noImg]}>
+              <Text appearance="hint">Sem imagem</Text>
+            </Layout>
+          )}
+        </TouchableOpacity>
 
         <Text category="h6" style={styles.name}>{item.name}</Text>
 
@@ -191,7 +121,17 @@ export default function ExplorarScreen() {
               addFavorite({
                 id: String(item.id),
                 url: item.image?.url || '',
-                breeds: [{ name: item.name }],
+                name: item.name,
+                breeds: [{
+                    name: item.name || '',
+                    temperament: item.temperament,
+                    life_span: item.life_span,
+                    breed_group: item.breed_group,
+                    bred_for: item.bred_for,
+                    origin: item.origin,
+                    weight: item.weight,
+                    height: item.height
+                }]
               })
             }
           >
@@ -212,141 +152,119 @@ export default function ExplorarScreen() {
   }
 
   return (
-    <Layout style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Input
-          style={styles.searchInput}
-          placeholder='Buscar raça...'
-          value={searchText}
-          accessoryLeft={SearchIcon}
-          onChangeText={setSearchText}
-        />
-        <Button 
-          style={styles.filterButton} 
-          appearance='outline' 
-          accessoryLeft={FilterIcon}
-          onPress={() => setFilterModalVisible(true)}
-        />
-      </View>
-
-      <Text category="h6" style={styles.resultText}>
-        {filteredBreeds.length} raças encontradas
-      </Text>
-
-      <FlatList
-        data={filteredBreeds}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        showsVerticalScrollIndicator={false}
-      />
-
-      {filterModalVisible && (
-        <View style={styles.modalBackdrop}>
-          <Card disabled={true} style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <Text category='h6'>Filtros Avançados</Text>
-            </View>
-
-            <Text category='s2' style={styles.label}>Tempo de Vida</Text>
-            <RadioGroup
-              selectedIndex={selectedLifeSpanIndex}
-              onChange={index => setSelectedLifeSpanIndex(index)}
-            >
-              {LIFE_SPAN_OPTIONS.map((option, index) => (
-                <Radio key={index}>{option}</Radio>
-              ))}
-            </RadioGroup>
-
-            <Text category='s2' style={[styles.label, { marginTop: 16 }]}>Personalidade</Text>
+      <Layout style={styles.container}>
+        <View style={styles.headerContainer}>
             <Input
-              placeholder='Ex: Brincalhão, Leal...'
-              value={temperamentFilter}
-              onChangeText={setTemperamentFilter}
+            style={styles.searchInput}
+            placeholder='Buscar raça...'
+            value={searchText}
+            accessoryLeft={SearchIcon}
+            onChangeText={setSearchText}
             />
-
-            <Button style={{ marginTop: 20 }} onPress={() => setFilterModalVisible(false)}>
-              Aplicar Filtros
-            </Button>
             <Button 
-              style={{ marginTop: 10 }} 
-              appearance='ghost'
-              status='basic'
-              onPress={() => {
-                setTemperamentFilter('');
-                setSelectedLifeSpanIndex(0);
-                setFilterModalVisible(false);
-              }}
-            >
-              Limpar Filtros
-            </Button>
-          </Card>
+            style={styles.filterButton} 
+            appearance='outline' 
+            accessoryLeft={FilterIcon}
+            onPress={() => setFilterModalVisible(true)}
+            />
         </View>
-      )}
 
-      {detailsModalVisible && selectedBreed && (
-        <View style={styles.modalBackdrop}>
-          <Card disabled={true} style={[styles.modalCard, { maxHeight: '85%' }]}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.modalHeader}>
-                <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{selectedBreed.name}</Text>
-                <TouchableOpacity onPress={() => setDetailsModalVisible(false)}>
-                  <Icon name='close-outline' fill='#000' style={{ width: 28, height: 28 }} />
-                </TouchableOpacity>
-              </View>
+        <Text category="h6" style={styles.resultText}>
+            {filteredBreeds.length} raças encontradas
+        </Text>
 
-              {selectedBreed.image?.url && (
-                <Image source={{ uri: selectedBreed.image.url }} style={styles.detailImage} />
-              )}
+        <FlatList
+            data={filteredBreeds}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderItem}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            showsVerticalScrollIndicator={false}
+        />
 
-              <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
-              <View style={styles.detailRow}>
-                <Text category='s1'>📏 Altura:</Text>
-                <Text>{selectedBreed.height?.metric ? `${selectedBreed.height.metric} cm` : 'N/A'}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text category='s1'>⚖️ Peso:</Text>
-                <Text>{selectedBreed.weight?.metric ? `${selectedBreed.weight.metric} kg` : 'N/A'}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text category='s1'>❤️ Vida:</Text>
-                <Text>{selectedBreed.life_span?.replace('years', 'anos').replace('year', 'ano') || 'N/A'}</Text>
-              </View>
-
-              <Divider style={{marginVertical: 12}}/>
-
-              <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
-              <View style={styles.detailBlock}>
-                <Text category='s1'>🧠 Temperamento:</Text>
-                <Text appearance='hint'>{translateTemperament(selectedBreed.temperament)}</Text>
-              </View>
-              
-              {selectedBreed.breed_group && (
-                <View style={styles.detailBlock}>
-                  <Text category='s1'>🏷️ Grupo:</Text>
-                  <Text appearance='hint'>{translateBreedGroup(selectedBreed.breed_group)}</Text>
+        {filterModalVisible && (
+            <View style={styles.modalBackdrop}>
+            <Card disabled={true} style={styles.modalCard}>
+                <View style={styles.modalHeader}>
+                <Text category='h6'>Filtros Avançados</Text>
                 </View>
-              )}
 
-              {selectedBreed.bred_for && (
-                <View style={styles.detailBlock}>
-                  <Text category='s1'>🛠️ Criado para:</Text>
-                  <Text appearance='hint'>{translateGeneric(selectedBreed.bred_for)}</Text>
+                <Text category='s2' style={styles.label}>Tempo de Vida</Text>
+                <RadioGroup
+                selectedIndex={selectedLifeSpanIndex}
+                onChange={index => setSelectedLifeSpanIndex(index)}
+                >
+                {LIFE_SPAN_OPTIONS.map((option, index) => (
+                    <Radio key={index}>{option}</Radio>
+                ))}
+                </RadioGroup>
+
+                <Text category='s2' style={[styles.label, { marginTop: 16 }]}>Personalidade</Text>
+                <Input
+                placeholder='Ex: Brincalhão, Leal...'
+                value={temperamentFilter}
+                onChangeText={setTemperamentFilter}
+                />
+
+                <Button style={{ marginTop: 20 }} onPress={() => setFilterModalVisible(false)}>
+                Aplicar Filtros
+                </Button>
+                <Button 
+                style={{ marginTop: 10 }} 
+                appearance='ghost'
+                status='basic'
+                onPress={() => {
+                    setTemperamentFilter('');
+                    setSelectedLifeSpanIndex(0);
+                    setFilterModalVisible(false);
+                }}
+                >
+                Limpar Filtros
+                </Button>
+            </Card>
+            </View>
+        )}
+
+        {detailsModalVisible && selectedBreed && (
+            <View style={styles.modalBackdrop}>
+            <Card disabled={true} style={[styles.modalCard, { maxHeight: '85%' }]}>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.modalHeader}>
+                    <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{selectedBreed.name}</Text>
+                    <TouchableOpacity onPress={() => setDetailsModalVisible(false)}>
+                    <Icon name='close-outline' fill='#000' style={{ width: 28, height: 28 }} />
+                    </TouchableOpacity>
                 </View>
-              )}
 
-              {selectedBreed.origin && (
-                <View style={styles.detailBlock}>
-                  <Text category='s1'>🌍 Origem:</Text>
-                  <Text appearance='hint'>{translateGeneric(selectedBreed.origin)}</Text>
-                </View>
-              )}
-              <View style={{marginBottom: 20}} /> 
-            </ScrollView>
-          </Card>
-        </View>
-      )}
+                {selectedBreed.image?.url && (
+                    <Image source={{ uri: selectedBreed.image.url }} style={styles.detailImage} />
+                )}
 
+                <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
+                <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{selectedBreed.height?.metric ? `${selectedBreed.height.metric} cm` : 'N/A'}</Text></View>
+                <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{selectedBreed.weight?.metric ? `${selectedBreed.weight.metric} kg` : 'N/A'}</Text></View>
+                <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{selectedBreed.life_span?.replace('years', 'anos').replace('year', 'ano') || 'N/A'}</Text></View>
+
+                <Divider style={{marginVertical: 12}}/>
+
+                <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
+                <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{translateTemperament(selectedBreed.temperament)}</Text></View>
+                
+                {selectedBreed.breed_group && (
+                    <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{translateBreedGroup(selectedBreed.breed_group)}</Text></View>
+                )}
+
+                {selectedBreed.bred_for && (
+                    <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{translateGeneric(selectedBreed.bred_for)}</Text></View>
+                )}
+
+                {selectedBreed.origin && (
+                    <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{translateGeneric(selectedBreed.origin)}</Text></View>
+                )}
+                <View style={{marginBottom: 20}} /> 
+                </ScrollView>
+            </Card>
+            </View>
+        )}
     </Layout>
   );
 }
@@ -357,7 +275,6 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, borderRadius: 12 },
   filterButton: { width: 50, borderRadius: 12, paddingHorizontal: 0 },
   resultText: { marginBottom: 12, marginLeft: 4, fontSize: 14, color: '#888' },
-  
   card: { marginBottom: 20, borderRadius: 16, paddingBottom: 8, borderWidth: 0, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
   image: { width: '100%', height: 200, borderRadius: 12, marginBottom: 12 },
   noImg: { justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F0F0', height: 200, borderRadius: 12, marginBottom: 12 },
@@ -365,20 +282,7 @@ const styles = StyleSheet.create({
   info: { marginBottom: 4, color: '#666' },
   buttonGroup: { flexDirection: 'row', marginTop: 12, gap: 8 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  
-  modalBackdrop: { 
-    position: 'absolute', 
-    top: 0, 
-    left: 0, 
-    right: 0, 
-    bottom: 0, 
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    zIndex: 1000, 
-    padding: 20,
-    paddingBottom: 60
-  },
+  modalBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: 20, paddingBottom: 60 },
   modalCard: { width: '100%', borderRadius: 16 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   label: { marginBottom: 8, marginTop: 4, color: '#888', fontWeight: 'bold' },
