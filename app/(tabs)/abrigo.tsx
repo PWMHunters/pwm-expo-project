@@ -1,43 +1,71 @@
-// app/tabs/abrigo.tsx
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
+// app/(tabs)/abrigo.tsx
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 
-interface Abrigo {
-  id: string;
-  nome: string;
-  endereco: string;
-}
+const ABRIGOS_DATA = [
+  {
+    id: '1',
+    nome: 'Abrigo Esperança Animal',
+    endereco: 'Rua das Flores, 123',
+    imagem: 'https://placedog.net/600/400?r=1',
+  },
+  {
+    id: '2',
+    nome: 'Lar dos Peludos',
+    endereco: 'Av. Brasil, 456',
+    imagem: 'https://placedog.net/600/400?r=2',
+  },
+  {
+    id: '3',
+    nome: 'Casa do Bicho Feliz',
+    endereco: 'Praça Central, 78',
+    imagem: 'https://placedog.net/600/400?r=3',
+  },
+];
 
 export default function AbrigoScreen() {
-  const abrigos: Abrigo[] = [
-    { id: '1', nome: 'Abrigo São Francisco', endereco: 'Rua das Flores, 123' },
-    { id: '2', nome: 'Lar dos Animais', endereco: 'Av. Brasil, 456' },
-    { id: '3', nome: 'Casa do Bicho', endereco: 'Praça Central, 78' },
-  ];
-
-  const renderAbrigo = ({ item }: { item: Abrigo }) => (
-    <View style={styles.card}>
-      <Text style={styles.nome}>{item.nome}</Text>
-      <Text>{item.endereco}</Text>
-    </View>
-  );
+  const router = useRouter();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.titulo}>Abrigos</Text>
+
       <FlatList
-        data={abrigos}
+        data={ABRIGOS_DATA}
         keyExtractor={(item) => item.id}
-        renderItem={renderAbrigo}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 30 }}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push(`/abrigo/${item.id}`)}
+          >
+            <Image source={{ uri: item.imagem }} style={styles.imagem} />
+
+            <View style={{ flex: 1 }}>
+              <Text style={styles.nome}>{item.nome}</Text>
+              <Text style={styles.endereco}>{item.endereco}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', paddingHorizontal: 16 },
-  titulo: { fontSize: 24, fontWeight: 'bold', marginVertical: 16 },
-  card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 16, padding: 12 },
-  nome: { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
+  container: { flex: 1, padding: 16, backgroundColor: '#f5f5f5' },
+  titulo: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
+  card: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    marginBottom: 16,
+    padding: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    gap: 12,
+    elevation: 3,
+  },
+  imagem: { width: 80, height: 80, borderRadius: 10, backgroundColor: '#ddd' },
+  nome: { fontSize: 18, fontWeight: 'bold' },
+  endereco: { color: '#555' },
 });
