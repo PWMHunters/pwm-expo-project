@@ -1,7 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Icon, useTheme } from '@ui-kitten/components';
-import { View } from 'react-native';
 
 const TabIcon = ({ name, color, focused }: { name: string; color: string; focused: boolean }) => (
   <Icon
@@ -31,7 +30,7 @@ export default function TabLayout() {
           elevation: 10,
           backgroundColor: '#fff',
         },
-        tabBarShowLabel: false, // Esconde os nomes, deixa só ícones (opcional)
+        tabBarShowLabel: false,
       }}
     >
       <Tabs.Screen

@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView } from 'react-native';
+import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import { Layout, Text, Card, Button, Icon, Divider } from '@ui-kitten/components';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import api from '../api/dogApi';
 import { useRouter } from 'expo-router';
-import { translateTemperament, translateBreedGroup, translateGeneric } from '../../src/utils/dogUtils';
+import { translateTemperament, translateBreedGroup, translateGeneric, translateLifeSpan } from '../../src/utils/dogUtils';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -31,11 +31,15 @@ export default function HomeScreen() {
     setDetailsModalVisible(true);
   };
 
+  const closeDetails = () => {
+    setDetailsModalVisible(false);
+  };
+
   const renderRecomendado = ({ item }: { item: Dog }) => {
     const breed = item.breeds?.[0];
     const name = breed?.name || 'Raça desconhecida';
     
-    const lifeSpan = breed?.life_span?.replace('years', 'anos').replace('year', 'ano');
+    const lifeSpan = translateLifeSpan(breed?.life_span);
     const temperament = translateTemperament(breed?.temperament);
     const resumoTemperamento = temperament.length > 30 ? temperament.substring(0, 30) + '...' : temperament;
 
@@ -76,7 +80,7 @@ export default function HomeScreen() {
       url: dog.url,
       height: dog.height?.metric || breed?.height?.metric,
       weight: dog.weight?.metric || breed?.weight?.metric,
-      life_span: (dog.life_span || breed?.life_span)?.replace('years', 'anos').replace('year', 'ano'),
+      life_span: translateLifeSpan(dog.life_span || breed?.life_span),
       temperament: translateTemperament(dog.temperament || breed?.temperament),
       breed_group: translateBreedGroup(dog.breed_group || breed?.breed_group),
       bred_for: translateGeneric(dog.bred_for || breed?.bred_for),
@@ -86,7 +90,6 @@ export default function HomeScreen() {
 
   const details = getDetails(selectedDog);
   
-  // verifica se o cao aberto no modal ja eh favorito
   const isSelectedFavorito = details 
     ? favoritos.some(f => String(f.id) === String(details.id)) 
     : false;
@@ -126,53 +129,56 @@ export default function HomeScreen() {
         />
       </ScrollView>
 
-      {/* MODAL DE DETALHES */}
       {detailsModalVisible && details && selectedDog && (
-        <View style={styles.modalBackdrop}>
-          <Card disabled={true} style={[styles.modalCard, { maxHeight: '85%' }]}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.modalHeader}>
-                <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{details.name}</Text>
-                <TouchableOpacity onPress={() => setDetailsModalVisible(false)}>
-                  <Icon name='close-outline' fill='#000' style={{ width: 28, height: 28 }} />
-                </TouchableOpacity>
-              </View>
+        <TouchableOpacity 
+          style={styles.modalBackdrop} 
+          activeOpacity={1} 
+          onPress={closeDetails}
+        >
+          <TouchableWithoutFeedback>
+            <Card disabled={true} style={[styles.modalCard, { maxHeight: '85%' }]}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.modalHeader}>
+                  <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{details.name}</Text>
+                  <TouchableOpacity onPress={closeDetails}>
+                    <Icon name='close-outline' fill='#000' style={{ width: 28, height: 28 }} />
+                  </TouchableOpacity>
+                </View>
 
-              {details.url && (
-                <Image source={{ uri: details.url }} style={styles.detailImage} />
-              )}
+                {details.url && (
+                  <Image source={{ uri: details.url }} style={styles.detailImage} />
+                )}
 
-              <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
-              <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
-              <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
-              <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{details.life_span || 'N/A'}</Text></View>
+                <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
+                <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
+                <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
+                <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{details.life_span || 'N/A'}</Text></View>
 
-              <Divider style={{marginVertical: 12}}/>
+                <Divider style={{marginVertical: 12}}/>
 
-              <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
-              <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
-              {details.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
-              {details.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
-              {details.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
+                <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
+                <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
+                {details.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
+                {details.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
+                {details.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
 
-              {/* --- NOVO BOTÃO DE AÇÃO --- */}
-              <Button
-                style={{ marginTop: 24, marginBottom: 10 }}
-                status={isSelectedFavorito ? 'danger' : 'primary'}
-                onPress={() => {
-                  if (isSelectedFavorito) {
-                    removeFavorite(selectedDog.id);
-                  } else {
-                    addFavorite(selectedDog);
-                  }
-                }}
-              >
-                {isSelectedFavorito ? 'Remover dos Favoritos' : 'Salvar nos Favoritos ❤️'}
-              </Button>
-
-            </ScrollView>
-          </Card>
-        </View>
+                <Button
+                  style={{ marginTop: 24, marginBottom: 10 }}
+                  status={isSelectedFavorito ? 'danger' : 'primary'}
+                  onPress={() => {
+                    if (isSelectedFavorito) {
+                      removeFavorite(selectedDog.id);
+                    } else {
+                      addFavorite(selectedDog);
+                    }
+                  }}
+                >
+                  {isSelectedFavorito ? 'Remover dos Favoritos' : 'Salvar nos Favoritos ❤️'}
+                </Button>
+              </ScrollView>
+            </Card>
+          </TouchableWithoutFeedback>
+        </TouchableOpacity>
       )}
     </Layout>
   );
@@ -192,6 +198,7 @@ const styles = StyleSheet.create({
   recImage: { width: '100%', height: 120, borderRadius: 12, marginBottom: 8 },
   recTitle: { marginTop: 4, marginBottom: 4, fontWeight: 'bold', fontSize: 16 },
   infoText: { fontSize: 12, marginBottom: 2, color: '#666' },
+  
   modalBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: 20, paddingBottom: 60 },
   modalCard: { width: '100%', borderRadius: 16 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },

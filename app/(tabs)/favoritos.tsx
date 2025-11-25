@@ -1,8 +1,8 @@
 import React, { useContext, useState } from 'react';
-import { Image, FlatList, StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
+import { Image, FlatList, StyleSheet, View, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import { Layout, Text, Card, Button, Icon, Divider } from '@ui-kitten/components';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
-import { translateTemperament, translateBreedGroup, translateGeneric } from '../../src/utils/dogUtils';
+import { translateTemperament, translateBreedGroup, translateGeneric, translateLifeSpan } from '../../src/utils/dogUtils';
 
 export default function FavoritosScreen() {
   const { favoritos, removeFavorite } = useContext(FavoritesContext);
@@ -13,6 +13,10 @@ export default function FavoritosScreen() {
   const openDetails = (dog: Dog) => {
     setSelectedDog(dog);
     setDetailsModalVisible(true);
+  };
+
+  const closeDetails = () => {
+    setDetailsModalVisible(false);
   };
 
   const renderItem = ({ item }: { item: Dog }) => {
@@ -48,7 +52,7 @@ export default function FavoritosScreen() {
       url: dog.url,
       height: dog.height?.metric || breed?.height?.metric,
       weight: dog.weight?.metric || breed?.weight?.metric,
-      life_span: (dog.life_span || breed?.life_span)?.replace('years', 'anos').replace('year', 'ano'),
+      life_span: translateLifeSpan(dog.life_span || breed?.life_span),
       temperament: translateTemperament(dog.temperament || breed?.temperament),
       breed_group: translateBreedGroup(dog.breed_group || breed?.breed_group),
       bred_for: translateGeneric(dog.bred_for || breed?.bred_for),
@@ -77,39 +81,44 @@ export default function FavoritosScreen() {
         />
       )}
 
-      {/* MODAL DE DETALHES */}
       {detailsModalVisible && details && (
-        <View style={styles.modalBackdrop}>
-          <Card disabled={true} style={[styles.modalCard, { maxHeight: '85%' }]}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.modalHeader}>
-                <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{details.name}</Text>
-                <TouchableOpacity onPress={() => setDetailsModalVisible(false)}>
-                  <Icon name='close-outline' fill='#000' style={{ width: 28, height: 28 }} />
-                </TouchableOpacity>
-              </View>
+        <TouchableOpacity 
+          style={styles.modalBackdrop} 
+          activeOpacity={1} 
+          onPress={closeDetails}
+        >
+          <TouchableWithoutFeedback>
+            <Card disabled={true} style={[styles.modalCard, { maxHeight: '85%' }]}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.modalHeader}>
+                  <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{details.name}</Text>
+                  <TouchableOpacity onPress={closeDetails}>
+                    <Icon name='close-outline' fill='#000' style={{ width: 28, height: 28 }} />
+                  </TouchableOpacity>
+                </View>
 
-              {details.url && (
-                <Image source={{ uri: details.url }} style={styles.detailImage} />
-              )}
+                {details.url && (
+                  <Image source={{ uri: details.url }} style={styles.detailImage} />
+                )}
 
-              <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
-              <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
-              <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
-              <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{details.life_span || 'N/A'}</Text></View>
+                <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
+                <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
+                <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
+                <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{details.life_span || 'N/A'}</Text></View>
 
-              <Divider style={{marginVertical: 12}}/>
+                <Divider style={{marginVertical: 12}}/>
 
-              <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
-              <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
-              {details.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
-              {details.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
-              {details.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
+                <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
+                <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
+                {details.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
+                {details.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
+                {details.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
 
-              <View style={{marginBottom: 20}} /> 
-            </ScrollView>
-          </Card>
-        </View>
+                <View style={{marginBottom: 20}} /> 
+              </ScrollView>
+            </Card>
+          </TouchableWithoutFeedback>
+        </TouchableOpacity>
       )}
     </Layout>
   );
@@ -124,7 +133,6 @@ const styles = StyleSheet.create({
   btnRemover: { marginTop: 12, borderRadius: 10 },
   vazio: { marginTop: 40, fontSize: 16, textAlign: 'center' },
 
-  // Modal Styles (Mesmos da Home/Explorar)
   modalBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: 20, paddingBottom: 60 },
   modalCard: { width: '100%', borderRadius: 16 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
