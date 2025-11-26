@@ -1,26 +1,23 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Image, FlatList, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { Layout, Text, Card } from '@ui-kitten/components';
-import { FavoritesContext } from '../context/FavoritesContext';
+import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { Layout, Text, Card, Button, Icon, Divider } from '@ui-kitten/components';
+import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import api from '../api/dogApi';
 import { useRouter } from 'expo-router';
-
-interface Dog {
-  id?: string;
-  url?: string;
-  breeds?: { name: string }[];
-}
+import { translateTemperament, translateBreedGroup, translateGeneric, translateLifeSpan } from '../../src/utils/dogUtils';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { favoritos } = useContext(FavoritesContext);
-
+  const { favoritos, addFavorite, removeFavorite } = useContext(FavoritesContext);
   const [recomendados, setRecomendados] = useState<Dog[]>([]);
+  
+  const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+  const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
 
   useEffect(() => {
     async function fetchRecommended() {
       try {
-        const res = await api.get('images/search', { params: { limit: 3 } });
+        const res = await api.get('images/search', { params: { limit: 5, has_breeds: 1 } });
         setRecomendados(res.data);
       } catch (error) {
         console.log('Erro ao carregar recomendados:', error);
@@ -29,133 +26,184 @@ export default function HomeScreen() {
     fetchRecommended();
   }, []);
 
+  const openDetails = (dog: Dog) => {
+    setSelectedDog(dog);
+    setDetailsModalVisible(true);
+  };
+
+  const closeDetails = () => {
+    setDetailsModalVisible(false);
+  };
+
   const renderRecomendado = ({ item }: { item: Dog }) => {
+    const breed = item.breeds?.[0];
+    const name = breed?.name || 'Raça desconhecida';
+    
+    const lifeSpan = translateLifeSpan(breed?.life_span);
+    const temperament = translateTemperament(breed?.temperament);
+    const resumoTemperamento = temperament.length > 30 ? temperament.substring(0, 30) + '...' : temperament;
+
     return (
       <Card style={styles.recCard}>
-        <Image
-          source={{ uri: item.url || 'https://placehold.co/300x200' }}
-          style={styles.recImage}
-        />
-        <Text category="s1" style={styles.recTitle}>
-          {item.breeds?.[0]?.name || 'Raça desconhecida'}
+        <TouchableOpacity onPress={() => openDetails(item)}>
+          <Image
+            source={{ uri: item.url || 'https://placehold.co/300x200' }}
+            style={styles.recImage}
+          />
+        </TouchableOpacity>
+        
+        <Text category="s1" style={styles.recTitle} numberOfLines={1}>
+          {name}
         </Text>
+        
+        {breed?.temperament && (
+          <Text appearance="hint" category="c1" style={styles.infoText}>
+            🧠 {resumoTemperamento}
+          </Text>
+        )}
+        
+        {lifeSpan && (
+          <Text appearance="hint" category="c1" style={styles.infoText}>
+            ❤️ {lifeSpan}
+          </Text>
+        )}
       </Card>
     );
   };
 
-  return (
-    <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-      <Layout style={styles.container}>
-        
-        {/* TÍTULO */}
-        <Text category="h4" style={styles.titulo}>
-          Olá 👋
-        </Text>
-        <Text category="s1" style={styles.subtitulo}>
-          Pronto para descobrir novas raças hoje?
-        </Text>
+  const getDetails = (dog: Dog | null) => {
+    if (!dog) return null;
+    const breed = dog.breeds?.[0];
+    return {
+      id: dog.id,
+      name: dog.name || breed?.name || 'Desconhecido',
+      url: dog.url,
+      height: dog.height?.metric || breed?.height?.metric,
+      weight: dog.weight?.metric || breed?.weight?.metric,
+      life_span: translateLifeSpan(dog.life_span || breed?.life_span),
+      temperament: translateTemperament(dog.temperament || breed?.temperament),
+      breed_group: translateBreedGroup(dog.breed_group || breed?.breed_group),
+      bred_for: translateGeneric(dog.bred_for || breed?.bred_for),
+      origin: translateGeneric(dog.origin || breed?.origin),
+    };
+  };
 
-        {/* CARDS PRINCIPAIS */}
+  const details = getDetails(selectedDog);
+  
+  const isSelectedFavorito = details 
+    ? favoritos.some(f => String(f.id) === String(details.id)) 
+    : false;
+
+  return (
+    <Layout style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Text category="h4" style={styles.titulo}>Olá 👋</Text>
+        <Text category="s1" style={styles.subtitulo}>Pronto para descobrir novas raças hoje?</Text>
+
         <Layout style={styles.row}>
-          <TouchableOpacity
-            style={[styles.mainCard, { backgroundColor: '#4A90E2' }]}
-            onPress={() => router.push("/(tabs)/explorar")}
-          >
+          <TouchableOpacity style={[styles.mainCard, { backgroundColor: '#4A90E2' }]} onPress={() => router.push("/(tabs)/explorar")}>
             <Text style={styles.mainCardTitle}>🔍 Explorar</Text>
             <Text style={styles.mainCardSub}>Veja todas as raças</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.mainCard, { backgroundColor: '#E24A4A' }]}
-            onPress={() => router.push("/(tabs)/favoritos")}
-          >
+          <TouchableOpacity style={[styles.mainCard, { backgroundColor: '#E24A4A' }]} onPress={() => router.push("/(tabs)/favoritos")}>
             <Text style={styles.mainCardTitle}>❤️ Favoritos</Text>
-            <Text style={styles.mainCardSub}>
-              {favoritos.length} salvos
-            </Text>
+            <Text style={styles.mainCardSub}>{favoritos.length} salvos</Text>
           </TouchableOpacity>
         </Layout>
 
-        {/* ESTATÍSTICAS */}
         <Text category="h6" style={styles.statsTitle}>Suas Estatísticas</Text>
-
         <Layout style={styles.statsBox}>
           <Text category="s1">Favoritos: {favoritos.length}</Text>
           <Text appearance="hint">Raças registradas na app</Text>
         </Layout>
 
-        {/* RECOMENDADOS */}
         <Text category="h6" style={styles.statsTitle}>Recomendados Hoje</Text>
-
         <FlatList
           data={recomendados}
-          keyExtractor={(item) => item.id || Math.random().toString()}
+          keyExtractor={(item) => String(item.id || Math.random())}
           renderItem={renderRecomendado}
           horizontal
           showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
         />
+      </ScrollView>
 
-      </Layout>
-    </ScrollView>
+      {detailsModalVisible && details && selectedDog && (
+        <TouchableOpacity 
+          style={styles.modalBackdrop} 
+          activeOpacity={1} 
+          onPress={closeDetails}
+        >
+          <TouchableWithoutFeedback>
+            <Card disabled={true} style={[styles.modalCard, { maxHeight: '85%' }]}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.modalHeader}>
+                  <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{details.name}</Text>
+                  <TouchableOpacity onPress={closeDetails}>
+                    <Icon name='close-outline' fill='#000' style={{ width: 28, height: 28 }} />
+                  </TouchableOpacity>
+                </View>
+
+                {details.url && (
+                  <Image source={{ uri: details.url }} style={styles.detailImage} />
+                )}
+
+                <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
+                <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
+                <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
+                <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{details.life_span || 'N/A'}</Text></View>
+
+                <Divider style={{marginVertical: 12}}/>
+
+                <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
+                <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
+                {details.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
+                {details.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
+                {details.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
+
+                <Button
+                  style={{ marginTop: 24, marginBottom: 10 }}
+                  status={isSelectedFavorito ? 'danger' : 'primary'}
+                  onPress={() => {
+                    if (isSelectedFavorito) {
+                      removeFavorite(selectedDog.id);
+                    } else {
+                      addFavorite(selectedDog);
+                    }
+                  }}
+                >
+                  {isSelectedFavorito ? 'Remover dos Favoritos' : 'Salvar nos Favoritos ❤️'}
+                </Button>
+              </ScrollView>
+            </Card>
+          </TouchableWithoutFeedback>
+        </TouchableOpacity>
+      )}
+    </Layout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 18 },
+  container: { flex: 1, padding: 18, paddingTop: 50 },
   titulo: { fontWeight: 'bold', marginBottom: 4 },
   subtitulo: { marginBottom: 22 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
+  mainCard: { width: '48%', padding: 18, borderRadius: 16 },
+  mainCardTitle: { fontSize: 20, fontWeight: 'bold', color: '#FFF' },
+  mainCardSub: { marginTop: 6, fontSize: 14, color: '#F0F0F0' },
+  statsTitle: { fontWeight: 'bold', marginBottom: 10 },
+  statsBox: { width: '100%', padding: 16, borderRadius: 14, backgroundColor: '#EEE', marginBottom: 22 },
+  recCard: { width: 160, marginRight: 12, borderRadius: 16, padding: 0 },
+  recImage: { width: '100%', height: 120, borderRadius: 12, marginBottom: 8 },
+  recTitle: { marginTop: 4, marginBottom: 4, fontWeight: 'bold', fontSize: 16 },
+  infoText: { fontSize: 12, marginBottom: 2, color: '#666' },
   
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-
-  mainCard: {
-    width: '48%',
-    padding: 18,
-    borderRadius: 16,
-  },
-
-  mainCardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFF',
-  },
-
-  mainCardSub: {
-    marginTop: 6,
-    fontSize: 14,
-    color: '#F0F0F0',
-  },
-
-  statsTitle: {
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-
-  statsBox: {
-    width: '100%',
-    padding: 16,
-    borderRadius: 14,
-    backgroundColor: '#EEE',
-    marginBottom: 22,
-  },
-
-  recCard: {
-    width: 180,
-    marginRight: 16,
-    borderRadius: 16,
-  },
-
-  recImage: {
-    width: '100%',
-    height: 150,
-    borderRadius: 14,
-  },
-
-  recTitle: {
-    marginTop: 8,
-    fontWeight: '600',
-  },
+  modalBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: 20, paddingBottom: 60 },
+  modalCard: { width: '100%', borderRadius: 16 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  detailImage: { width: '100%', height: 250, borderRadius: 12, marginBottom: 16, resizeMode: 'cover' },
+  sectionTitle: { marginTop: 8, marginBottom: 8, color: '#3366FF', fontWeight: 'bold', fontSize: 16 },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', paddingBottom: 4 },
+  detailBlock: { marginBottom: 10 }
 });

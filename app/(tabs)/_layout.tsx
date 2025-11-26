@@ -1,89 +1,89 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Tabs } from 'expo-router';
+import { Icon, useTheme } from '@ui-kitten/components';
 
-const ICON_MAP: Record<
-  string,
-  {
-    active: React.ComponentProps<typeof Ionicons>['name'];
-    inactive: React.ComponentProps<typeof Ionicons>['name'];
-  }
-> = {
-  home: { active: 'home', inactive: 'home-outline' },
-  explorar: { active: 'search', inactive: 'search-outline' },
-  favoritos: { active: 'heart', inactive: 'heart-outline' },
-  abrigo: { active: 'paw', inactive: 'paw-outline' },
-};
+const TabIcon = ({ name, color, focused }: { name: string; color: string; focused: boolean }) => (
+  <Icon
+    style={{ width: 24, height: 24, tintColor: color }}
+    fill={color}
+    name={focused ? name : `${name}-outline`}
+  />
+);
 
 export default function TabLayout() {
+  const theme = useTheme();
+
   return (
     <Tabs
-      screenOptions={({ route }) => {
-        const key = route.name;
-        const map = ICON_MAP[key] ?? {
-          active: 'ellipse',
-          inactive: 'ellipse-outline',
-        };
-
-        return {
-          headerShown: false,
-          tabBarShowLabel: false,
-          tabBarStyle: styles.tabBar,
-
-          tabBarIcon: ({ focused }) => {
-            const name = focused ? map.active : map.inactive;
-
-            return (
-              <View style={styles.iconContainer}>
-                <Ionicons
-                  name={name}
-                  size={focused ? 28 : 24}
-                  color={focused ? '#2563EB' : '#94A3B8'}
-                />
-                {focused && <View style={styles.indicator} />}
-              </View>
-            );
-          },
-        };
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: theme['color-primary-500'],
+        tabBarInactiveTintColor: '#999',
+        tabBarStyle: {
+          height: 60,
+          paddingBottom: 10,
+          paddingTop: 10,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          position: 'absolute',
+          borderTopWidth: 0,
+          elevation: 10,
+          backgroundColor: '#fff',
+        },
+        tabBarShowLabel: false,
       }}
     >
-      <Tabs.Screen name="home" options={{ title: 'Home' }} />
-      <Tabs.Screen name="explorar" options={{ title: 'Explorar' }} />
-      <Tabs.Screen name="favoritos" options={{ title: 'Favoritos' }} />
-      <Tabs.Screen name="abrigo" options={{ title: 'Abrigos' }} />
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: 'Início',
+          tabBarIcon: ({ color, focused }) => <TabIcon name="home" color={color} focused={focused} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="explorar"
+        options={{
+          title: 'Explorar',
+          tabBarIcon: ({ color, focused }) => <TabIcon name="search" color={color} focused={focused} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="favoritos"
+        options={{
+          title: 'Favoritos',
+          tabBarIcon: ({ color, focused }) => <TabIcon name="heart" color={color} focused={focused} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="abrigo"
+        options={{
+          title: 'Abrigos',
+          tabBarIcon: ({ color, focused }) => <Icon style={{ width: 24, height: 24, tintColor: color }} name='npm-outline' fill={color} />, 
+        }}
+      />
+
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="search"
+        options={{
+          href: null, 
+        }}
+      />
+      <Tabs.Screen
+        name="perfil"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color, focused }) => <TabIcon name="person" color={color} focused={focused} />,
+        }}
+      />
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    position: 'absolute',
-    bottom: 18,
-    left: 20,
-    right: 20,
-    height: 70,
-    borderRadius: 20,
-    backgroundColor: 'white',
-    elevation: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 12,
-  },
-
-  iconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-
-  indicator: {
-    position: 'absolute',
-    bottom: -6,
-    width: 6,
-    height: 6,
-    borderRadius: 50,
-    backgroundColor: '#2563EB',
-  },
-});

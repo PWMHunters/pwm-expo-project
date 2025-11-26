@@ -5,6 +5,7 @@ import { EvaIconsPack } from '@ui-kitten/eva-icons';
 import { Stack } from 'expo-router';
 import React from 'react';
 import { FavoritesProvider } from './context/FavoritesContext';
+import '../src/services/parseConfig';
 
 const queryClient = new QueryClient();
 
@@ -16,13 +17,23 @@ export default function RootLayout() {
   return (
     <>
       <IconRegistry icons={EvaIconsPack} />
-      
+
       <ApplicationProvider {...eva} theme={eva.light}>
         <QueryClientProvider client={queryClient}>
           <FavoritesProvider>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            
+            <Stack screenOptions={{ headerShown: false }}>
+              
+              <Stack.Screen name="index" />
+
+              <Stack.Screen name="login" options={{ animation: "fade" }} />
+
+              <Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
+              
+              <Stack.Screen name="catalog/[category]" />
+              
             </Stack>
+
           </FavoritesProvider>
         </QueryClientProvider>
       </ApplicationProvider>
