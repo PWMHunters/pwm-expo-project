@@ -1,31 +1,30 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { loginUser, registerUser } from '../src/services/userService';
-import { router } from 'expo-router';
+import { useUser } from '../src/hooks/useUser'; // <--- Importando nosso Hook
+// Removemos imports diretos do serviço e do router (o hook já faz o redirect)
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
 
-  const handleAuth = async () => {
+  // Puxando tudo do nosso Hook poderoso
+  const { login, signUp, isLoadingLogin, isLoadingSignUp } = useUser();
+
+  const isLoading = isLoadingLogin || isLoadingSignUp;
+
+  const handleAuth = () => {
     if (!email || !password) return Alert.alert("Erro", "Preencha todos os campos");
-    
-    setLoading(true);
-    try {
-      if (isRegistering) {
-        await registerUser({ email, pass: password });
-        Alert.alert("Sucesso", "Conta criada! Acessando...");
-        router.replace('/(tabs)'); // Vai para o app
-      } else {
-        await loginUser({ email, pass: password });
-        router.replace('/(tabs)'); // Vai para o app
-      }
-    } catch (error: any) {
-      Alert.alert("Erro", "Falha na autenticação: " + error.message);
-    } finally {
-      setLoading(false);
+
+    if (isRegistering) {
+      // Como o Parse exige Username, usamos o email como username
+      signUp({ 
+        username: email, 
+        email: email, 
+        password: password 
+      });
+    } else {
+      login({ user: email, pass: password });
     }
   };
 
@@ -39,6 +38,7 @@ export default function LoginScreen() {
         value={email} 
         onChangeText={setEmail}
         autoCapitalize="none" 
+        keyboardType="email-address"
       />
       <TextInput 
         style={styles.input} 
@@ -48,10 +48,13 @@ export default function LoginScreen() {
         secureTextEntry 
       />
 
-      {loading ? (
+      {isLoading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
-        <Button title={isRegistering ? "Cadastrar" : "Entrar"} onPress={handleAuth} />
+        <Button 
+          title={isRegistering ? "Cadastrar" : "Entrar"} 
+          onPress={handleAuth} 
+        />
       )}
 
       <Text style={styles.link} onPress={() => setIsRegistering(!isRegistering)}>

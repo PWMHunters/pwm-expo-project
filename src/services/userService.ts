@@ -1,105 +1,86 @@
-import Parse from "./parseConfig";
+import Parse from 'parse/react-native';
+// Certifique-se que o Parse foi inicializado no parseConfig.ts
 
-// Tipagem para login e cadastro
-interface AuthData {
+// Definição da interface do Usuário
+export interface UserData {
+  objectId?: string;      // <--- Adicionado: O ID do Parse
+  sessionToken?: string;  // <--- Adicionado: Token de sessão
+  createdAt?: string;     // <--- Adicionado: Data de criação
+  username: string;
   email: string;
-  pass: string;
-}
-
-// Tipagem para atualização de perfil
-interface UpdateData {
-  email?: string;
   password?: string;
-  username?: string;
 }
 
-// 1. CREATE (Cadastrar)
-export const registerUser = async ({ email, pass }: AuthData) => {
-  // DEBUG: Verifica se os dados estão chegando corretamente
-  console.log("Tentando cadastrar:", email, "Senha tamanho:", pass?.length);
-
-  if (!email || !pass) {
-    throw new Error("Email e senha são obrigatórios.");
-  }
-
-  try {
+export const userService = {
+  // CREATE (SignUp)
+  async signUp(data: UserData) {
     const user = new Parse.User();
-    // No Back4App, username é obrigatório e único. 
-    // Usamos o email como username para simplificar.
-    user.set("username", email.trim());
-    user.set("email", email.trim());
-    user.set("password", pass);
+    user.set('username', data.username);
+    user.set('password', data.password);
+    user.set('email', data.email);
     
-    await user.signUp();
-    return user;
-  } catch (error: any) {
-    // Log do erro completo para você ver no console
-    console.error("Erro no Parse SignUp:", error);
 
-    // Tratamento de erros comuns do Parse
-    if (error.code === 202) {
-      throw new Error("Este nome de usuário já está em uso.");
-    } else if (error.code === 203) {
-      throw new Error("Este e-mail já está cadastrado.");
-    } else {
-      throw new Error(error.message);
+    try {
+      const result = await user.signUp();
+      // Correção do erro de tipagem: cast para unknown primeiro
+      return result.toJSON() as unknown as UserData;
+    } catch (error) {
+      throw error;
     }
-  }
-};
+  },
 
-// 2. READ (Login / Ler Usuário Atual)
-export const loginUser = async ({ email, pass }: AuthData) => {
-  try {
-    const user = await Parse.User.logIn(email.trim(), pass);
-    return user;
-  } catch (error: any) {
-    // Erro 101 = Inválido login/senha
-    if (error.code === 101) {
-      throw new Error("Email ou senha inválidos.");
+  // READ (Login)
+  async login(username: string, pass: string) {
+    try {
+      const user = await Parse.User.logIn(username, pass);
+      return user.toJSON() as unknown as UserData;
+    } catch (error) {
+      throw error;
     }
-    throw new Error(error.message);
-  }
-};
+  },
 
-export const getCurrentUser = async () => {
-  return await Parse.User.currentAsync();
-};
+  async getCurrentUser() {
+    const currentUser = await Parse.User.currentAsync();
+    return currentUser ? (currentUser.toJSON() as unknown as UserData) : null;
+  },
 
-// 3. UPDATE (Editar Perfil)
-export const updateUserProfile = async (data: UpdateData) => {
-  try {
+  // UPDATE
+  async updateUser(data: Partial<UserData>) {
     const user = await Parse.User.currentAsync();
-    if (!user) throw new Error("Usuário não logado.");
+    if (!user) throw new Error('Usuário não logado');
 
-    if (data.email) {
-      user.set("email", data.email.trim());
-      user.set("username", data.email.trim());
-    }
+    if (data.username) user.set('username', data.username);
+    if (data.email) user.set('email', data.email)
     if (data.password) {
-      user.set("password", data.password);
+      user.set('password', data.password);
     }
 
-    await user.save();
-    return user;
-  } catch (error: any) {
-    throw new Error("Erro ao atualizar perfil: " + error.message);
-  }
-};
+    try {
+      const result = await user.save();
+      return { 
+        ...user.toJSON(), 
+        ...data 
+      } as unknown as UserData;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-// 4. DELETE (Remover Conta)
-export const deleteUserAccount = async () => {
-  try {
+  // DELETE (Excluir conta)
+  async deleteUser() {
     const user = await Parse.User.currentAsync();
-    if (!user) throw new Error("Usuário não logado.");
-
-    await user.destroy();
-    await Parse.User.logOut();
-  } catch (error: any) {
-    throw new Error("Erro ao deletar conta: " + error.message);
+    if (!user) throw new Error('Usuário não logado');
+    
+    try {
+      await user.fetch();
+      await user.destroy();
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  async logout() {
+    return await Parse.User.logOut();
   }
-};
-
-// LOGOUT
-export const logoutUser = async () => {
-  await Parse.User.logOut();
 };

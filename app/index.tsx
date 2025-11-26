@@ -1,32 +1,32 @@
 import { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
-import { getCurrentUser } from "../src/services/userService";
+import { userService } from "../src/services/userService"; // Importe o objeto userService
+import { useAuthStore } from "../src/store/authStore";    // Importe a Store
 
 export default function Index() {
+  const setCurrentUser = useAuthStore((state) => state.setUser);
+
   useEffect(() => {
     checkUser();
   }, []);
 
   const checkUser = async () => {
     try {
-      // Verifica no Back4App/Storage se tem usuário válido
-      const user = await getCurrentUser();
+      const user = await userService.getCurrentUser();
 
       if (user) {
-        // Se tiver usuário, manda para as abas (Home)
-        router.replace("/(tabs)");
+        setCurrentUser(user);
+        
+        router.replace("/(tabs)/home"); 
       } else {
-        // Se não, manda para o Login
         router.replace("/login");
       }
     } catch (error) {
-      // Por segurança, se der erro, manda pro login
       router.replace("/login");
     }
   };
 
-  // Mostra um loading enquanto decide
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#fff" }}>
       <ActivityIndicator size="large" color="#4a90e2" />
