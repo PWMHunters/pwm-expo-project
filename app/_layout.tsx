@@ -4,8 +4,8 @@ import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
 import { EvaIconsPack } from '@ui-kitten/eva-icons';
 import { Stack } from 'expo-router';
 import React from 'react';
+import '../src/services/config';
 import { FavoritesProvider } from './context/FavoritesContext';
-import '../src/services/parseConfig';
 
 const queryClient = new QueryClient();
 

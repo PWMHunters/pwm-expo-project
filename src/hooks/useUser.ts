@@ -1,18 +1,17 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { userService, UserData } from '../services/userService';
-import { useAuthStore } from '../../src/store/authStore'; // <--- 1. Importando a store correta
+import { useMutation } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
+import { useAuthStore } from '../../src/store/authStore'; // <--- 1. Importando a store correta
+import { UserData, userService } from '../services/userService';
 
 export const useUser = () => {
-  const queryClient = useQueryClient();
-  
+    
   const { setUser, logout } = useAuthStore();
 
   // 1. Hook de Login
   const loginMutation = useMutation({
     mutationFn: ({ user, pass }: { user: string; pass: string }) => 
-      userService.login(user, pass),
+      userService.login({username: user, password: pass}),
     onSuccess: (userData) => {
       setUser(userData); 
       router.replace('/(tabs)/home'); 

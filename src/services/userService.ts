@@ -1,86 +1,99 @@
-import Parse from 'parse/react-native';
-// Certifique-se que o Parse foi inicializado no parseConfig.ts
+import { headerJson, headerRevocableSession, instance, xParseSessionTokenKey } from "./config";
 
-// Definição da interface do Usuário
 export interface UserData {
-  objectId?: string;      // <--- Adicionado: O ID do Parse
-  sessionToken?: string;  // <--- Adicionado: Token de sessão
-  createdAt?: string;     // <--- Adicionado: Data de criação
+  objectId?: string;      
+  sessionToken?: string;  
+  createdAt?: string; 
+  
   username: string;
   email: string;
-  password?: string;
+  password: string;
+}
+export const userService = {
+  signUp,
+  login,
+  getCurrentUser,
+  updateUser,
+  deleteUser,
+  logout,
+};
+
+export async function signUp(user: UserData): Promise<UserData> {
+  const response = await instance.post(
+    "/users",
+    user,
+    { headers: { ...headerJson, ...headerRevocableSession } }
+  );
+  return response.data;
 }
 
-export const userService = {
-  // CREATE (SignUp)
-  async signUp(data: UserData) {
-    const user = new Parse.User();
-    user.set('username', data.username);
-    user.set('password', data.password);
-    user.set('email', data.email);
-    
+export async function login({username, password,}: {
+  username: string;
+  password: string;
+}): Promise<UserData> {
+  const response = await instance.post(
+    "/login",
+    new URLSearchParams({ username, password }),
+    { headers: headerRevocableSession }
+  );
 
-    try {
-      const result = await user.signUp();
-      // Correção do erro de tipagem: cast para unknown primeiro
-      return result.toJSON() as unknown as UserData;
-    } catch (error) {
-      throw error;
-    }
-  },
+  return response.data;
+}
 
-  // READ (Login)
-  async login(username: string, pass: string) {
-    try {
-      const user = await Parse.User.logIn(username, pass);
-      return user.toJSON() as unknown as UserData;
-    } catch (error) {
-      throw error;
-    }
-  },
+export async function getCurrentUser(sessionToken: string): Promise<UserData | null> {
+  try {
+    const response = await instance.get("/users/me", {
+      headers: {
+        [xParseSessionTokenKey]: sessionToken,
+      },
+    });
 
-  async getCurrentUser() {
-    const currentUser = await Parse.User.currentAsync();
-    return currentUser ? (currentUser.toJSON() as unknown as UserData) : null;
-  },
-
-  // UPDATE
-  async updateUser(data: Partial<UserData>) {
-    const user = await Parse.User.currentAsync();
-    if (!user) throw new Error('Usuário não logado');
-
-    if (data.username) user.set('username', data.username);
-    if (data.email) user.set('email', data.email)
-    if (data.password) {
-      user.set('password', data.password);
-    }
-
-    try {
-      const result = await user.save();
-      return { 
-        ...user.toJSON(), 
-        ...data 
-      } as unknown as UserData;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // DELETE (Excluir conta)
-  async deleteUser() {
-    const user = await Parse.User.currentAsync();
-    if (!user) throw new Error('Usuário não logado');
-    
-    try {
-      await user.fetch();
-      await user.destroy();
-      return true;
-    } catch (error) {
-      throw error;
-    }
-  },
-  
-  async logout() {
-    return await Parse.User.logOut();
+    return response.data;
+  } catch {
+    return null;
   }
-};
+}
+
+export async function updateUser({
+  sessionToken,
+  ...data
+}: Partial<UserData>): Promise<UserData> {
+  if (!sessionToken) throw new Error("sessionToken é obrigatório");
+
+  const response = await instance.put(
+    `/users/me`,
+    data,
+    {
+      headers: {
+        ...headerJson,
+        [xParseSessionTokenKey]: sessionToken,
+      },
+    }
+  );
+
+  return response.data;
+}
+
+export async function deleteUser(sessionToken: string) {
+  const response = await instance.delete("/users/me", {
+    headers: {
+      [xParseSessionTokenKey]: sessionToken,
+    },
+  });
+
+  return response.data;
+}
+
+export async function logout(sessionToken: string) {
+  const response = await instance.post(
+    "/logout",
+    "",
+    {
+      headers: {
+        [xParseSessionTokenKey]: sessionToken,
+      },
+    }
+  );
+
+  return response.data;
+}
