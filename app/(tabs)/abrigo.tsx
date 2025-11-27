@@ -7,8 +7,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
+  StatusBar
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Abrigo {
   id: string;
@@ -45,15 +48,18 @@ export default function AbrigoScreen() {
   const router = useRouter();
   const [abrigos, setAbrigos] = useState<Abrigo[]>([]);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
 
-  // FAZ O FETCH DE FOTOS ALEATÓRIAS
-  const fetchRandomDog = async () => {
+  const fetchUniqueDogs = async (count: number): Promise<string[]> => {
     try {
-      const res = await fetch('https://dog.ceo/api/breeds/image/random');
+      const res = await fetch(`https://dog.ceo/api/breeds/image/random/${count}`);
       const data = await res.json();
-      return data.message; // URL da foto
+      if (data.status === 'success' && Array.isArray(data.message)) {
+        return data.message;
+      }
+      return Array(count).fill(PLACEHOLDER);
     } catch {
-      return PLACEHOLDER;
+      return Array(count).fill(PLACEHOLDER);
     }
   };
 
@@ -62,13 +68,7 @@ export default function AbrigoScreen() {
       const lista: Abrigo[] = [];
 
       for (const abrigo of BASE_ABRIGOS) {
-        const fotos: string[] = [];
-
-        // pegar 3 fotos aleatórias da API
-        for (let i = 0; i < 3; i++) {
-          const foto = await fetchRandomDog();
-          fotos.push(foto);
-        }
+        const fotos = await fetchUniqueDogs(3);
 
         lista.push({
           ...abrigo,
@@ -87,7 +87,7 @@ export default function AbrigoScreen() {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#4A90E2" />
-        <Text>Carregando fotos...</Text>
+        <Text style={{marginTop: 10}}>Carregando abrigos...</Text>
       </View>
     );
   }
@@ -98,12 +98,13 @@ export default function AbrigoScreen() {
       <Text style={styles.endereco}>📍 {item.endereco}</Text>
       <Text style={styles.descricao}>{item.descricao}</Text>
 
-      <View style={styles.fotosRow}>
+      <View style={styles.fotosContainer}>
         {item.fotosPets.slice(0, 2).map((fotoUrl, index) => (
           <Image
-            key={index}
+            key={`${item.id}-${index}`}
             source={{ uri: fotoUrl }}
             style={styles.petFoto}
+            resizeMode="cover"
           />
         ))}
       </View>
@@ -133,47 +134,68 @@ export default function AbrigoScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[
+      styles.container, 
+      { paddingTop: insets.top > 0 ? insets.top + 10 : 40 }
+    ]}>
       <Text style={styles.titulo}>🐶 Abrigos Parceiros</Text>
 
       <FlatList
         data={abrigos}
         keyExtractor={(item) => item.id}
         renderItem={renderAbrigo}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5', padding: 16 },
-  titulo: { fontSize: 26, fontWeight: 'bold', marginBottom: 16 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#F5F5F5', 
+    paddingHorizontal: 16 
+  },
+  titulo: { 
+    fontSize: 26, 
+    fontWeight: 'bold', 
+    marginBottom: 16,
+    color: '#333'
+  },
 
   card: {
     backgroundColor: '#FFF',
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 18,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 3,
   },
 
-  nome: { fontSize: 20, fontWeight: 'bold', marginBottom: 4 },
-  endereco: { fontSize: 14, color: '#444', marginBottom: 8 },
-  descricao: { fontSize: 14, color: '#555', marginBottom: 10 },
+  nome: { fontSize: 20, fontWeight: 'bold', marginBottom: 4, color: '#000' },
+  endereco: { fontSize: 14, color: '#666', marginBottom: 8 },
+  descricao: { fontSize: 14, color: '#555', marginBottom: 16, lineHeight: 20 },
 
-  fotosRow: { flexDirection: 'row', marginBottom: 14 },
+  fotosContainer: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
 
   petFoto: {
-    width: 120,
+    width: '48%',
     height: 120,
     borderRadius: 12,
-    backgroundColor: '#DDD',
-    marginRight: 10,
+    backgroundColor: '#F0F0F0',
   },
 
   btn: {
     backgroundColor: '#4A90E2',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
   },
