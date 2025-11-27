@@ -1,18 +1,16 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Image, Modal, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Pressable } from 'react-native';
-import { Layout, Text, Card, Button, Divider } from '@ui-kitten/components';
+import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Modal } from 'react-native';
+import { Layout, Text, Button, Divider } from '@ui-kitten/components';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import api from '../api/dogApi';
 import { useRouter } from 'expo-router';
 import { translateTemperament, translateBreedGroup, translateGeneric, translateLifeSpan } from '../../src/utils/dogUtils';
 import { Ionicons } from '@expo/vector-icons';
 
-
 export default function HomeScreen() {
   const router = useRouter();
   const { favoritos, addFavorite, removeFavorite } = useContext(FavoritesContext);
   const [recomendados, setRecomendados] = useState<Dog[]>([]);
-  
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
 
@@ -32,10 +30,7 @@ export default function HomeScreen() {
     setSelectedDog(dog);
     setDetailsModalVisible(true);
   };
-
-  const closeDetails = () => {
-    setDetailsModalVisible(false);
-  };
+  const closeDetails = () => setDetailsModalVisible(false);
 
   const renderRecomendado = ({ item }: { item: Dog }) => {
     const breed = item.breeds?.[0];
@@ -45,27 +40,12 @@ export default function HomeScreen() {
     const resumoTemperamento = temperament.length > 30 ? temperament.substring(0, 30) + '...' : temperament;
 
     return (
-      <Card style={styles.recCard}>
-        <TouchableOpacity onPress={() => openDetails(item)}>
-          <Image
-            source={{ uri: item.url || 'https://placehold.co/300x200' }}
-            style={styles.recImage}
-          />
-        </TouchableOpacity>
-        <Text category="s1" style={styles.recTitle} numberOfLines={1}>
-          {name}
-        </Text>
-        {breed?.temperament && (
-          <Text appearance="hint" category="c1" style={styles.infoText}>
-            🧠 {resumoTemperamento}
-          </Text>
-        )}
-        {lifeSpan && (
-          <Text appearance="hint" category="c1" style={styles.infoText}>
-            ❤️ {lifeSpan}
-          </Text>
-        )}
-      </Card>
+      <TouchableOpacity onPress={() => openDetails(item)} style={styles.recCard}>
+        <Image source={{ uri: item.url || 'https://placehold.co/300x200' }} style={styles.recImage} />
+        <Text category="s1" style={styles.recTitle} numberOfLines={1}>{name}</Text>
+        {breed?.temperament && <Text appearance="hint" style={styles.infoText}>🧠 {resumoTemperamento}</Text>}
+        {lifeSpan && <Text appearance="hint" style={styles.infoText}>❤️ {lifeSpan}</Text>}
+      </TouchableOpacity>
     );
   };
 
@@ -87,9 +67,7 @@ export default function HomeScreen() {
   };
 
   const details = getDetails(selectedDog);
-  const isSelectedFavorito = details 
-    ? favoritos.some(f => String(f.id) === String(details.id)) 
-    : false;
+  const isSelectedFavorito = details ? favoritos.some(f => String(f.id) === String(details.id)) : false;
 
   return (
     <Layout style={styles.container}>
@@ -97,7 +75,7 @@ export default function HomeScreen() {
         <Text category="h4" style={styles.titulo}>Olá 👋</Text>
         <Text category="s1" style={styles.subtitulo}>Pronto para descobrir novas raças hoje?</Text>
 
-        <Layout style={styles.row}>
+        <View style={styles.row}>
           <TouchableOpacity style={[styles.mainCard, { backgroundColor: '#4A90E2' }]} onPress={() => router.push("/(tabs)/explorar")}>
             <Text style={styles.mainCardTitle}>🔍 Explorar</Text>
             <Text style={styles.mainCardSub}>Veja todas as raças</Text>
@@ -107,13 +85,13 @@ export default function HomeScreen() {
             <Text style={styles.mainCardTitle}>❤️ Favoritos</Text>
             <Text style={styles.mainCardSub}>{favoritos.length} salvos</Text>
           </TouchableOpacity>
-        </Layout>
+        </View>
 
         <Text category="h6" style={styles.statsTitle}>Suas Estatísticas</Text>
-        <Layout style={styles.statsBox}>
+        <View style={styles.statsBox}>
           <Text category="s1">Favoritos: {favoritos.length}</Text>
           <Text appearance="hint">Raças registradas na app</Text>
-        </Layout>
+        </View>
 
         <Text category="h6" style={styles.statsTitle}>Recomendados Hoje</Text>
         <FlatList
@@ -126,57 +104,47 @@ export default function HomeScreen() {
         />
       </ScrollView>
 
-      {/* Modal de Detalhes */}
-      {detailsModalVisible && details && selectedDog && (
-        <Modal
-          visible={detailsModalVisible}
-          animationType="slide"
-          transparent
-          onRequestClose={closeDetails}
-        >
-          <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
-            <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-              <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+      {/* Modal de detalhes */}
+      {detailsModalVisible && details && (
+        <Modal visible={detailsModalVisible} animationType="slide" transparent onRequestClose={closeDetails}>
+          <View style={styles.modalBackdrop}>
+            <View style={styles.modalContent}>
+              <ScrollView showsVerticalScrollIndicator={true} nestedScrollEnabled={true} contentContainerStyle={{ paddingBottom: 40 }}>
                 <View style={styles.modalHeader}>
-                  <Text category='h5' style={{fontWeight: 'bold', flex: 1, color: '#000'}}>{details.name}</Text>
-                  <TouchableOpacity onPress={closeDetails} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <Text category='h5' style={{ fontWeight: 'bold', flex: 1 }}>{details.name}</Text>
+                  <TouchableOpacity onPress={closeDetails}>
                     <Ionicons name="close-outline" size={28} color="#000" />
                   </TouchableOpacity>
                 </View>
 
-                {details.url && (
-                  <Image source={{ uri: details.url }} style={styles.detailImage} />
-                )}
+                {details.url && <Image source={{ uri: details.url }} style={styles.detailImage} />}
 
                 <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
-                <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>📏 Altura:</Text><Text style={{color: '#555'}}>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
-                <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>⚖️ Peso:</Text><Text style={{color: '#555'}}>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
-                <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>❤️ Vida:</Text><Text style={{color: '#555'}}>{details.life_span || 'N/A'}</Text></View>
+                <Text>📏 Altura: {details.height || 'N/A'}</Text>
+                <Text>⚖️ Peso: {details.weight || 'N/A'}</Text>
+                <Text>❤️ Vida: {details.life_span || 'N/A'}</Text>
 
-                <Divider style={{marginVertical: 12}}/>
+                <Divider style={{ marginVertical: 12 }} />
 
                 <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
-                <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
-                {details.breed_group && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
-                {details.bred_for && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
-                {details.origin && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
+                <Text>🧠 Temperamento: {details.temperament}</Text>
+                {details.breed_group && <Text>🏷️ Grupo: {details.breed_group}</Text>}
+                {details.bred_for && <Text>🛠️ Criado para: {details.bred_for}</Text>}
+                {details.origin && <Text>🌍 Origem: {details.origin}</Text>}
 
                 <Button
-                  style={{ marginTop: 24, marginBottom: 10 }}
+                  style={{ marginTop: 24 }}
                   status={isSelectedFavorito ? 'danger' : 'primary'}
                   onPress={() => {
-                    if (isSelectedFavorito) {
-                      removeFavorite(selectedDog.id);
-                    } else {
-                      addFavorite(selectedDog);
-                    }
+                    if (isSelectedFavorito) removeFavorite(selectedDog!.id);
+                    else addFavorite(selectedDog!);
                   }}
                 >
                   {isSelectedFavorito ? 'Remover dos Favoritos' : 'Salvar nos Favoritos ❤️'}
                 </Button>
               </ScrollView>
-            </Pressable>
-          </Pressable>
+            </View>
+          </View>
         </Modal>
       )}
     </Layout>
@@ -197,24 +165,10 @@ const styles = StyleSheet.create({
   recImage: { width: '100%', height: 120, borderRadius: 12, marginBottom: 8 },
   recTitle: { marginTop: 4, marginBottom: 4, fontWeight: 'bold', fontSize: 16 },
   infoText: { fontSize: 12, marginBottom: 2, color: '#666' },
-  
-  modalBackdrop: { 
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    padding: 20
-  },
-  modalContent: { 
-    width: '100%', 
-    maxHeight: '85%', 
-    backgroundColor: '#FFF', 
-    borderRadius: 16, 
-    padding: 20,
-  },
+
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 20 },
+  modalContent: { flex: 1, backgroundColor: '#FFF', borderRadius: 16, padding: 20 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   detailImage: { width: '100%', height: 250, borderRadius: 12, marginBottom: 16, resizeMode: 'cover' },
   sectionTitle: { marginTop: 8, marginBottom: 8, color: '#3366FF', fontWeight: 'bold', fontSize: 16 },
-  detailRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', paddingBottom: 4 },
-  detailBlock: { marginBottom: 10 }
 });
