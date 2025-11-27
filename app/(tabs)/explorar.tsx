@@ -1,15 +1,33 @@
 import React, { useEffect, useState, useContext, useMemo } from 'react';
 import { FlatList, Image, StyleSheet, TouchableOpacity, View, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { Layout, Text, Card, Button, Spinner, Input, Icon, Divider, CheckBox } from '@ui-kitten/components';
+// REMOVIDO: 'Icon' do import do UI Kitten
+import { Layout, Text, Card, Button, Spinner, Input, Divider, CheckBox } from '@ui-kitten/components';
+// ADICIONADO: Ionicons do Expo
+import { Ionicons } from '@expo/vector-icons';
 import api from '../api/dogApi';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import { translateTemperament, translateBreedGroup, translateGeneric, translateLifeSpan } from '../../src/utils/dogUtils';
 
-const SearchIcon = (props: any) => <Icon {...props} name='search-outline' />;
-const FilterIcon = (props: any) => <Icon {...props} name='funnel-outline' />;
-const InfoIcon = (props: any) => <Icon {...props} name='info-outline' />;
-const ArrowDownIcon = (props: any) => <Icon {...props} name='arrow-ios-downward-outline' />;
-const ArrowUpIcon = (props: any) => <Icon {...props} name='arrow-ios-upward-outline' />;
+// --- ÍCONES CORRIGIDOS (Usando Ionicons) ---
+// Função auxiliar para pegar a cor que o Input do UI Kitten tenta passar
+const getIconColor = (props: any) => props?.style?.tintColor || '#8F9BB3';
+
+const SearchIcon = (props: any) => (
+  <Ionicons name="search-outline" size={24} color={getIconColor(props)} />
+);
+const FilterIcon = (props: any) => (
+  <Ionicons name="funnel-outline" size={24} color={getIconColor(props)} />
+);
+const InfoIcon = (props: any) => (
+  <Ionicons name="information-circle-outline" size={24} color={getIconColor(props)} />
+);
+// Ícones não usados diretamente no Input, mas definidos para segurança
+const ArrowDownIcon = (props: any) => (
+  <Ionicons name="chevron-down-outline" size={24} color={getIconColor(props)} />
+);
+const ArrowUpIcon = (props: any) => (
+  <Ionicons name="chevron-up-outline" size={24} color={getIconColor(props)} />
+);
 
 const parseRange = (text?: string) => {
   if (!text) return { min: 0, max: 999 };
@@ -34,10 +52,11 @@ const MultiSelectAccordion = ({ title, options, selectedValues, onToggle }: any)
         <Text category='s2' style={styles.label}>
           {title} {selectedValues.length > 0 ? `(${selectedValues.length})` : ''}
         </Text>
-        <Icon
-          style={{ width: 20, height: 20, tintColor: '#888' }}
-          fill='#888'
-          name={expanded ? 'arrow-ios-upward-outline' : 'arrow-ios-downward-outline'}
+        {/* CORREÇÃO: Ícone da seta do Accordion trocado por Ionicons */}
+        <Ionicons
+          name={expanded ? 'chevron-up-outline' : 'chevron-down-outline'}
+          size={20}
+          color="#888"
         />
       </TouchableOpacity>
       

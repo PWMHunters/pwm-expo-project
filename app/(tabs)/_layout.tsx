@@ -1,20 +1,26 @@
-import { Icon, useTheme } from '@ui-kitten/components';
+import { Ionicons } from '@expo/vector-icons'; 
+import { useTheme } from '@ui-kitten/components';
 import { Tabs } from 'expo-router';
 import React from 'react';
 
 interface Props {
-  name: string;
+  name: keyof typeof Ionicons.glyphMap | string; 
   color: string;
   focused: boolean;
 }
 
-const TabIcon = ({ name, color, focused }: Props) => (
-  <Icon
-    name={focused ? name : `${name}-outline`}
-    style={{ width: 24, height: 24, tintColor: color }}
-    fill={color}
-  />
-);
+const TabIcon = ({ name, color, focused }: Props) => {
+  const iconName = focused ? name : `${name}-outline`;
+  
+  return (
+    <Ionicons
+      name={iconName as any}
+      size={24}
+      color={color} 
+      style={{ marginBottom: -3 }}
+    />
+  );
+};
 
 export default function TabLayout() {
   const theme = useTheme();
@@ -23,7 +29,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme['color-primary-500'],
+        tabBarActiveTintColor: theme['color-primary-500'], 
         tabBarInactiveTintColor: '#999',
         tabBarStyle: {
           height: 60,
@@ -67,21 +73,18 @@ export default function TabLayout() {
         name="abrigo"
         options={{
           title: 'Abrigos',
-          tabBarIcon: ({ color, focused }) => <Icon style={{ width: 24, height: 24, tintColor: color }} name='npm-outline' fill={color} />, 
+          tabBarIcon: ({ color, focused }) => <TabIcon name="business" color={color} focused={focused} />, 
         }}
       />
 
+      {/* Telas que não aparecem na barra (mas existem na navegação) */}
       <Tabs.Screen
         name="index"
-        options={{
-          href: null,
-        }}
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="search"
-        options={{
-          href: null, 
-        }}
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="perfil"
