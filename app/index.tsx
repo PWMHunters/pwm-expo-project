@@ -1,8 +1,9 @@
-import { useEffect } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { xParseSessionTokenKey } from "@/src/services/config";
 import { router } from "expo-router";
+import { useEffect } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { userService } from "../src/services/userService"; // Importe o objeto userService
-import { useAuthStore } from "../src/store/authStore";    // Importe a Store
+import { useAuthStore } from "../src/store/authStore"; // Importe a Store
 
 export default function Index() {
   const setCurrentUser = useAuthStore((state) => state.setUser);
@@ -13,7 +14,7 @@ export default function Index() {
 
   const checkUser = async () => {
     try {
-      const user = await userService.getCurrentUser();
+      const user = await userService.getCurrentUser(xParseSessionTokenKey);
 
       if (user) {
         setCurrentUser(user);

@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform } from 'react-native'; // <--- Adicionei Platform
 import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'; // <--- Adicionei Platform
 
+import { xParseSessionTokenKey } from '@/src/services/config';
 import { useUser } from '../../src/hooks/useUser';
-import { useAuthStore } from '../../src/store/authStore';
 import { userService } from '../../src/services/userService';
+import { useAuthStore } from '../../src/store/authStore';
+
 
 export default function ProfileScreen() {
   const currentUser = useAuthStore((state) => state.user);
@@ -23,7 +25,7 @@ export default function ProfileScreen() {
       if (!currentUser) {
         setIsLoadingRecovery(true);
         try {
-          const diskUser = await userService.getCurrentUser();
+          const diskUser = await userService.getCurrentUser(xParseSessionTokenKey);
           if (diskUser) {
             setUser(diskUser);
           } else {
@@ -63,7 +65,7 @@ export default function ProfileScreen() {
     if (Platform.OS === 'web') {
       const confirm = window.confirm("Tem certeza absoluta? Sua conta será apagada permanentemente.");
       if (confirm) {
-        deleteUser();
+        deleteUser(xParseSessionTokenKey);
       }
       return;
     }
@@ -78,7 +80,7 @@ export default function ProfileScreen() {
           style: "destructive", 
           onPress: () => {
              console.log("Confirmado no Mobile. Deletando...");
-             deleteUser();
+             deleteUser(xParseSessionTokenKey);
           } 
         }
       ]
@@ -147,7 +149,7 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.logoutBtn} onPress={() => logout()}>
+        <TouchableOpacity style={styles.logoutBtn} onPress={() => logout(xParseSessionTokenKey)}>
           <Text style={styles.logoutText}>Sair do App</Text>
         </TouchableOpacity>
 

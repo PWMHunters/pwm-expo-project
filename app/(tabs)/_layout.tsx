@@ -1,12 +1,18 @@
-import React from 'react';
-import { Tabs } from 'expo-router';
 import { Icon, useTheme } from '@ui-kitten/components';
+import { Tabs } from 'expo-router';
+import React from 'react';
 
-const TabIcon = ({ name, color, focused }: { name: string; color: string; focused: boolean }) => (
+interface Props {
+  name: string;
+  color: string;
+  focused: boolean;
+}
+
+const TabIcon = ({ name, color, focused }: Props) => (
   <Icon
+    name={focused ? name : `${name}-outline`}
     style={{ width: 24, height: 24, tintColor: color }}
     fill={color}
-    name={focused ? name : `${name}-outline`}
   />
 );
 

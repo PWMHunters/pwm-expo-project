@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useUser } from '../src/hooks/useUser'; // <--- Importando nosso Hook
-// Removemos imports diretos do serviço e do router (o hook já faz o redirect)
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

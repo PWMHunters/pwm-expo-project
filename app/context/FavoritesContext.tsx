@@ -1,10 +1,10 @@
 import React, { createContext, useState, ReactNode } from 'react';
 
 export interface Dog {
-  id: string | number;
+  id: string;
   url?: string;
   image?: { 
-    url: string;
+  url: string;
   };
   name?: string;
   
