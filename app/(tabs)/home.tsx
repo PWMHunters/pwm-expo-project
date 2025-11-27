@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Pressable } from 'react-native';
-import { Layout, Text, Card, Button, Divider } from '@ui-kitten/components';
+import { Layout, Text, Card, Button, Divider } from '@ui-kitten/components'; // Card mantido apenas para a lista principal
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import api from '../api/dogApi';
 import { useRouter } from 'expo-router';
@@ -142,50 +142,48 @@ export default function HomeScreen() {
           onPress={closeDetails}
         >
           <Pressable 
-            style={[styles.modalCard, { maxHeight: '85%' }]} 
+            style={styles.modalContent} 
             onPress={(e) => e.stopPropagation()}
           >
-            <Card disabled={true} style={{flex: 1, borderRadius: 16, borderWidth: 0}}>
-              <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={styles.modalHeader}>
-                  <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{details.name}</Text>
-                  <TouchableOpacity onPress={closeDetails}>
-                    <Ionicons name="close-outline" size={28} color="#000" />
-                  </TouchableOpacity>
-                </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.modalHeader}>
+                <Text category='h5' style={{fontWeight: 'bold', flex: 1, color: '#000'}}>{details.name}</Text>
+                <TouchableOpacity onPress={closeDetails} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <Ionicons name="close-outline" size={28} color="#000" />
+                </TouchableOpacity>
+              </View>
 
-                {details.url && (
-                  <Image source={{ uri: details.url }} style={styles.detailImage} />
-                )}
+              {details.url && (
+                <Image source={{ uri: details.url }} style={styles.detailImage} />
+              )}
 
-                <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
-                <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
-                <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
-                <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{details.life_span || 'N/A'}</Text></View>
+              <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
+              <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>📏 Altura:</Text><Text style={{color: '#555'}}>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
+              <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>⚖️ Peso:</Text><Text style={{color: '#555'}}>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
+              <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>❤️ Vida:</Text><Text style={{color: '#555'}}>{details.life_span || 'N/A'}</Text></View>
 
-                <Divider style={{marginVertical: 12}}/>
+              <Divider style={{marginVertical: 12}}/>
 
-                <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
-                <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
-                {details.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
-                {details.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
-                {details.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
+              <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
+              <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
+              {details.breed_group && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
+              {details.bred_for && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
+              {details.origin && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
 
-                <Button
-                  style={{ marginTop: 24, marginBottom: 10 }}
-                  status={isSelectedFavorito ? 'danger' : 'primary'}
-                  onPress={() => {
-                    if (isSelectedFavorito) {
-                      removeFavorite(selectedDog.id);
-                    } else {
-                      addFavorite(selectedDog);
-                    }
-                  }}
-                >
-                  {isSelectedFavorito ? 'Remover dos Favoritos' : 'Salvar nos Favoritos ❤️'}
-                </Button>
-              </ScrollView>
-            </Card>
+              <Button
+                style={{ marginTop: 24, marginBottom: 10 }}
+                status={isSelectedFavorito ? 'danger' : 'primary'}
+                onPress={() => {
+                  if (isSelectedFavorito) {
+                    removeFavorite(selectedDog.id);
+                  } else {
+                    addFavorite(selectedDog);
+                  }
+                }}
+              >
+                {isSelectedFavorito ? 'Remover dos Favoritos' : 'Salvar nos Favoritos ❤️'}
+              </Button>
+            </ScrollView>
           </Pressable>
         </Pressable>
       )}
@@ -208,8 +206,31 @@ const styles = StyleSheet.create({
   recTitle: { marginTop: 4, marginBottom: 4, fontWeight: 'bold', fontSize: 16 },
   infoText: { fontSize: 12, marginBottom: 2, color: '#666' },
   
-  modalBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: 20, paddingBottom: 60 },
-  modalCard: { width: '100%', borderRadius: 16 },
+  modalBackdrop: { 
+    position: 'absolute', 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0, 
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    zIndex: 1000, 
+    padding: 20, 
+    paddingBottom: 60 
+  },
+  modalContent: { 
+    width: '100%', 
+    maxHeight: '85%', 
+    backgroundColor: '#FFF', 
+    borderRadius: 16, 
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   detailImage: { width: '100%', height: 250, borderRadius: 12, marginBottom: 16, resizeMode: 'cover' },
   sectionTitle: { marginTop: 8, marginBottom: 8, color: '#3366FF', fontWeight: 'bold', fontSize: 16 },
