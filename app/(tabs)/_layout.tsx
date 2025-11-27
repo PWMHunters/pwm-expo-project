@@ -1,26 +1,16 @@
-import { Ionicons } from '@expo/vector-icons'; 
-import { useTheme } from '@ui-kitten/components';
-import { Tabs } from 'expo-router';
 import React from 'react';
+import { Tabs } from 'expo-router';
+import { useTheme } from '@ui-kitten/components';
+import { Ionicons } from '@expo/vector-icons';
+import { Platform } from 'react-native'; // Importe Platform para ajustes finos se precisar
 
-interface Props {
-  name: keyof typeof Ionicons.glyphMap | string; 
-  color: string;
-  focused: boolean;
-}
-
-const TabIcon = ({ name, color, focused }: Props) => {
-  const iconName = focused ? name : `${name}-outline`;
-  
-  return (
-    <Ionicons
-      name={iconName as any}
-      size={24}
-      color={color} 
-      style={{ marginBottom: -3 }}
-    />
-  );
-};
+const TabIcon = ({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean }) => (
+  <Ionicons
+    name={focused ? name : `${name}-outline` as keyof typeof Ionicons.glyphMap}
+    size={24}
+    color={color}
+  />
+);
 
 export default function TabLayout() {
   const theme = useTheme();
@@ -29,11 +19,11 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme['color-primary-500'], 
+        tabBarActiveTintColor: theme['color-primary-500'],
         tabBarInactiveTintColor: '#999',
         tabBarStyle: {
-          height: 60,
-          paddingBottom: 10,
+          height: 80,
+          paddingBottom: 30,
           paddingTop: 10,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
@@ -73,26 +63,21 @@ export default function TabLayout() {
         name="abrigo"
         options={{
           title: 'Abrigos',
-          tabBarIcon: ({ color, focused }) => <TabIcon name="business" color={color} focused={focused} />, 
+          tabBarIcon: ({ color, focused }) => <TabIcon name="paw" color={color} focused={focused} />, 
         }}
       />
-
-      {/* Telas que não aparecem na barra (mas existem na navegação) */}
-      <Tabs.Screen
-        name="index"
-        options={{ href: null }}
-      />
-      <Tabs.Screen
-        name="search"
-        options={{ href: null }}
-      />
+      
       <Tabs.Screen
         name="perfil"
         options={{
           title: 'Perfil',
-          tabBarIcon: ({ color, focused }) => <TabIcon name="person" color={color} focused={focused} />,
+          tabBarIcon: ({ color, focused }) => <TabIcon name="person" color={color} focused={focused} />, 
         }}
       />
+
+      <Tabs.Screen name="index" options={{ href: null }} />
+      <Tabs.Screen name="search" options={{ href: null }} />
+      <Tabs.Screen name="[id]" options={{ href: null }} />
     </Tabs>
   );
 }
