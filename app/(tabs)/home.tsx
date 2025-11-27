@@ -1,10 +1,17 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, TouchableWithoutFeedback } from 'react-native';
-import { Layout, Text, Card, Button, Icon, Divider } from '@ui-kitten/components';
+import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { Layout, Text, Card, Button, Divider } from '@ui-kitten/components';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import api from '../api/dogApi';
 import { useRouter } from 'expo-router';
 import { translateTemperament, translateBreedGroup, translateGeneric, translateLifeSpan } from '../../src/utils/dogUtils';
+import { Ionicons } from '@expo/vector-icons';
+
+const getIconColor = (props: any) => props?.style?.tintColor || '#FFF';
+
+const InfoIcon = (props: any) => (
+  <Ionicons name="information-circle-outline" size={20} color={getIconColor(props)} />
+);
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -130,18 +137,20 @@ export default function HomeScreen() {
       </ScrollView>
 
       {detailsModalVisible && details && selectedDog && (
-        <TouchableOpacity 
+        <Pressable 
           style={styles.modalBackdrop} 
-          activeOpacity={1} 
           onPress={closeDetails}
         >
-          <TouchableWithoutFeedback>
-            <Card disabled={true} style={[styles.modalCard, { maxHeight: '85%' }]}>
+          <Pressable 
+            style={[styles.modalCard, { maxHeight: '85%' }]} 
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Card disabled={true} style={{flex: 1, borderRadius: 16, borderWidth: 0}}>
               <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.modalHeader}>
                   <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{details.name}</Text>
                   <TouchableOpacity onPress={closeDetails}>
-                    <Icon name='close-outline' fill='#000' style={{ width: 28, height: 28 }} />
+                    <Ionicons name="close-outline" size={28} color="#000" />
                   </TouchableOpacity>
                 </View>
 
@@ -177,8 +186,8 @@ export default function HomeScreen() {
                 </Button>
               </ScrollView>
             </Card>
-          </TouchableWithoutFeedback>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       )}
     </Layout>
   );

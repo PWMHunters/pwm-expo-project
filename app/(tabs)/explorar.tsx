@@ -1,15 +1,11 @@
 import React, { useEffect, useState, useContext, useMemo } from 'react';
-import { FlatList, Image, StyleSheet, TouchableOpacity, View, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
-// REMOVIDO: 'Icon' do import do UI Kitten
+import { FlatList, Image, StyleSheet, TouchableOpacity, View, ScrollView, Pressable, Keyboard } from 'react-native';
 import { Layout, Text, Card, Button, Spinner, Input, Divider, CheckBox } from '@ui-kitten/components';
-// ADICIONADO: Ionicons do Expo
 import { Ionicons } from '@expo/vector-icons';
 import api from '../api/dogApi';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import { translateTemperament, translateBreedGroup, translateGeneric, translateLifeSpan } from '../../src/utils/dogUtils';
 
-// --- ÍCONES CORRIGIDOS (Usando Ionicons) ---
-// Função auxiliar para pegar a cor que o Input do UI Kitten tenta passar
 const getIconColor = (props: any) => props?.style?.tintColor || '#8F9BB3';
 
 const SearchIcon = (props: any) => (
@@ -20,13 +16,6 @@ const FilterIcon = (props: any) => (
 );
 const InfoIcon = (props: any) => (
   <Ionicons name="information-circle-outline" size={24} color={getIconColor(props)} />
-);
-// Ícones não usados diretamente no Input, mas definidos para segurança
-const ArrowDownIcon = (props: any) => (
-  <Ionicons name="chevron-down-outline" size={24} color={getIconColor(props)} />
-);
-const ArrowUpIcon = (props: any) => (
-  <Ionicons name="chevron-up-outline" size={24} color={getIconColor(props)} />
 );
 
 const parseRange = (text?: string) => {
@@ -52,7 +41,6 @@ const MultiSelectAccordion = ({ title, options, selectedValues, onToggle }: any)
         <Text category='s2' style={styles.label}>
           {title} {selectedValues.length > 0 ? `(${selectedValues.length})` : ''}
         </Text>
-        {/* CORREÇÃO: Ícone da seta do Accordion trocado por Ionicons */}
         <Ionicons
           name={expanded ? 'chevron-up-outline' : 'chevron-down-outline'}
           size={20}
@@ -298,9 +286,9 @@ export default function ExplorarScreen() {
       />
 
       {filterModalVisible && (
-        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={closeFilters}>
-          <TouchableWithoutFeedback>
-            <Card disabled={true} style={[styles.modalCard, { maxHeight: '90%' }]}>
+        <Pressable style={styles.modalBackdrop} onPress={closeFilters}>
+          <Pressable style={[styles.modalCard, { maxHeight: '90%' }]} onPress={(e) => e.stopPropagation()}>
+            <Card disabled={true} style={{flex: 1, borderRadius: 16, borderWidth: 0}}>
               <View style={styles.modalHeader}>
                 <Text category='h6'>Filtros Avançados</Text>
               </View>
@@ -358,14 +346,14 @@ export default function ExplorarScreen() {
                 >Limpar Filtros</Button>
               </View>
             </Card>
-          </TouchableWithoutFeedback>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       )}
 
       {detailsModalVisible && selectedBreed && (
-        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={closeDetails}>
-          <TouchableWithoutFeedback>
-            <Card disabled={true} style={[styles.modalCard, { maxHeight: '85%' }]}>
+        <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
+          <Pressable style={[styles.modalCard, { maxHeight: '85%' }]} onPress={(e) => e.stopPropagation()}>
+            <Card disabled={true} style={{flex: 1, borderRadius: 16, borderWidth: 0}}>
               <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.modalHeader}>
                   <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{selectedBreed.name}</Text>
@@ -389,8 +377,8 @@ export default function ExplorarScreen() {
                 <View style={{marginBottom: 20}} /> 
               </ScrollView>
             </Card>
-          </TouchableWithoutFeedback>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       )}
     </Layout>
   );
@@ -410,7 +398,7 @@ const styles = StyleSheet.create({
   buttonGroup: { flexDirection: 'row', marginTop: 12, gap: 8 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   modalBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: 20, paddingBottom: 60 },
-  modalCard: { width: '100%', borderRadius: 16, flexShrink: 1 },
+  modalCard: { width: '100%', borderRadius: 16 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   label: { marginBottom: 8, marginTop: 4, color: '#888', fontWeight: 'bold', fontSize: 12 },
   filterRow: { flexDirection: 'row', justifyContent: 'space-between' },
