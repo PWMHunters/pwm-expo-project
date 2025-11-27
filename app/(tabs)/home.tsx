@@ -1,17 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Pressable } from 'react-native';
-import { Layout, Text, Card, Button, Divider } from '@ui-kitten/components'; // Card mantido apenas para a lista principal
+import { Image, Modal, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { Layout, Text, Card, Button, Divider } from '@ui-kitten/components';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import api from '../api/dogApi';
 import { useRouter } from 'expo-router';
 import { translateTemperament, translateBreedGroup, translateGeneric, translateLifeSpan } from '../../src/utils/dogUtils';
 import { Ionicons } from '@expo/vector-icons';
 
-const getIconColor = (props: any) => props?.style?.tintColor || '#FFF';
-
-const InfoIcon = (props: any) => (
-  <Ionicons name="information-circle-outline" size={20} color={getIconColor(props)} />
-);
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -45,7 +40,6 @@ export default function HomeScreen() {
   const renderRecomendado = ({ item }: { item: Dog }) => {
     const breed = item.breeds?.[0];
     const name = breed?.name || 'Raça desconhecida';
-    
     const lifeSpan = translateLifeSpan(breed?.life_span);
     const temperament = translateTemperament(breed?.temperament);
     const resumoTemperamento = temperament.length > 30 ? temperament.substring(0, 30) + '...' : temperament;
@@ -58,17 +52,14 @@ export default function HomeScreen() {
             style={styles.recImage}
           />
         </TouchableOpacity>
-        
         <Text category="s1" style={styles.recTitle} numberOfLines={1}>
           {name}
         </Text>
-        
         {breed?.temperament && (
           <Text appearance="hint" category="c1" style={styles.infoText}>
             🧠 {resumoTemperamento}
           </Text>
         )}
-        
         {lifeSpan && (
           <Text appearance="hint" category="c1" style={styles.infoText}>
             ❤️ {lifeSpan}
@@ -96,7 +87,6 @@ export default function HomeScreen() {
   };
 
   const details = getDetails(selectedDog);
-  
   const isSelectedFavorito = details 
     ? favoritos.some(f => String(f.id) === String(details.id)) 
     : false;
@@ -136,56 +126,58 @@ export default function HomeScreen() {
         />
       </ScrollView>
 
+      {/* Modal de Detalhes */}
       {detailsModalVisible && details && selectedDog && (
-        <Pressable 
-          style={styles.modalBackdrop} 
-          onPress={closeDetails}
+        <Modal
+          visible={detailsModalVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={closeDetails}
         >
-          <Pressable 
-            style={styles.modalContent} 
-            onPress={(e) => e.stopPropagation()}
-          >
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.modalHeader}>
-                <Text category='h5' style={{fontWeight: 'bold', flex: 1, color: '#000'}}>{details.name}</Text>
-                <TouchableOpacity onPress={closeDetails} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                  <Ionicons name="close-outline" size={28} color="#000" />
-                </TouchableOpacity>
-              </View>
+          <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
+            <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+              <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+                <View style={styles.modalHeader}>
+                  <Text category='h5' style={{fontWeight: 'bold', flex: 1, color: '#000'}}>{details.name}</Text>
+                  <TouchableOpacity onPress={closeDetails} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <Ionicons name="close-outline" size={28} color="#000" />
+                  </TouchableOpacity>
+                </View>
 
-              {details.url && (
-                <Image source={{ uri: details.url }} style={styles.detailImage} />
-              )}
+                {details.url && (
+                  <Image source={{ uri: details.url }} style={styles.detailImage} />
+                )}
 
-              <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
-              <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>📏 Altura:</Text><Text style={{color: '#555'}}>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
-              <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>⚖️ Peso:</Text><Text style={{color: '#555'}}>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
-              <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>❤️ Vida:</Text><Text style={{color: '#555'}}>{details.life_span || 'N/A'}</Text></View>
+                <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
+                <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>📏 Altura:</Text><Text style={{color: '#555'}}>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
+                <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>⚖️ Peso:</Text><Text style={{color: '#555'}}>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
+                <View style={styles.detailRow}><Text category='s1' style={{color: '#333'}}>❤️ Vida:</Text><Text style={{color: '#555'}}>{details.life_span || 'N/A'}</Text></View>
 
-              <Divider style={{marginVertical: 12}}/>
+                <Divider style={{marginVertical: 12}}/>
 
-              <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
-              <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
-              {details.breed_group && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
-              {details.bred_for && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
-              {details.origin && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
+                <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
+                <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
+                {details.breed_group && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
+                {details.bred_for && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
+                {details.origin && <View style={styles.detailBlock}><Text category='s1' style={{color: '#333'}}>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
 
-              <Button
-                style={{ marginTop: 24, marginBottom: 10 }}
-                status={isSelectedFavorito ? 'danger' : 'primary'}
-                onPress={() => {
-                  if (isSelectedFavorito) {
-                    removeFavorite(selectedDog.id);
-                  } else {
-                    addFavorite(selectedDog);
-                  }
-                }}
-              >
-                {isSelectedFavorito ? 'Remover dos Favoritos' : 'Salvar nos Favoritos ❤️'}
-              </Button>
-            </ScrollView>
+                <Button
+                  style={{ marginTop: 24, marginBottom: 10 }}
+                  status={isSelectedFavorito ? 'danger' : 'primary'}
+                  onPress={() => {
+                    if (isSelectedFavorito) {
+                      removeFavorite(selectedDog.id);
+                    } else {
+                      addFavorite(selectedDog);
+                    }
+                  }}
+                >
+                  {isSelectedFavorito ? 'Remover dos Favoritos' : 'Salvar nos Favoritos ❤️'}
+                </Button>
+              </ScrollView>
+            </Pressable>
           </Pressable>
-        </Pressable>
+        </Modal>
       )}
     </Layout>
   );
@@ -207,17 +199,11 @@ const styles = StyleSheet.create({
   infoText: { fontSize: 12, marginBottom: 2, color: '#666' },
   
   modalBackdrop: { 
-    position: 'absolute', 
-    top: 0, 
-    left: 0, 
-    right: 0, 
-    bottom: 0, 
+    flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.6)', 
     justifyContent: 'center', 
     alignItems: 'center', 
-    zIndex: 1000, 
-    padding: 20, 
-    paddingBottom: 60 
+    padding: 20
   },
   modalContent: { 
     width: '100%', 
@@ -225,11 +211,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF', 
     borderRadius: 16, 
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   detailImage: { width: '100%', height: 250, borderRadius: 12, marginBottom: 16, resizeMode: 'cover' },
