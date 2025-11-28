@@ -1,14 +1,15 @@
 import { headerJson, headerRevocableSession, instance, xParseSessionTokenKey } from "./config";
 
 export interface UserData {
-  objectId?: string;      
-  sessionToken?: string;  
-  createdAt?: string; 
-  
+  objectId?: string;
+  sessionToken?: string;
+  createdAt?: string;
+
   username: string;
   email: string;
   password: string;
 }
+
 export const userService = {
   signUp,
   login,
@@ -27,7 +28,7 @@ export async function signUp(user: UserData): Promise<UserData> {
   return response.data;
 }
 
-export async function login({username, password,}: {
+export async function login({ username, password }: {
   username: string;
   password: string;
 }): Promise<UserData> {
@@ -74,10 +75,12 @@ export async function updateUser({
   return response.data;
 }
 
-export async function deleteUser(sessionToken: string) {
-  const response = await instance.delete("/users/me", {
+
+export async function deleteUser(objectId: string, sessionToken: string) {
+  const response = await instance.delete(`/users/${objectId}`, {
     headers: {
       [xParseSessionTokenKey]: sessionToken,
+      ...headerRevocableSession,
     },
   });
 
@@ -87,7 +90,7 @@ export async function deleteUser(sessionToken: string) {
 export async function logout(sessionToken: string) {
   const response = await instance.post(
     "/logout",
-    "",
+    {},
     {
       headers: {
         [xParseSessionTokenKey]: sessionToken,

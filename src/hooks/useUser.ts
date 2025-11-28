@@ -7,20 +7,19 @@ import { UserData, userService } from '../services/userService';
 export const useUser = () => {
   const { setUser, logout } = useAuthStore();
 
-  // 1. Login
   const loginMutation = useMutation({
     mutationFn: ({ user, pass }: { user: string; pass: string }) =>
       userService.login({ username: user, password: pass }),
     onSuccess: (userData) => {
+      console.log("Login OK. Token:", userData.sessionToken);
       setUser(userData);
       router.replace('/(tabs)/home');
     },
     onError: (error: any) => {
-      Alert.alert("Erro", "Falha ao logar: " + error.response?.data?.error || error.message);
+      Alert.alert("Erro", "Falha ao logar: " + (error.response?.data?.error || error.message));
     }
   });
 
-  // 2. Cadastro
   const signUpMutation = useMutation({
     mutationFn: (data: UserData) => userService.signUp(data),
     onSuccess: (userData) => {
@@ -28,15 +27,19 @@ export const useUser = () => {
       router.replace('/(tabs)/home');
     },
     onError: (error: any) => {
-      Alert.alert("Erro", "Falha ao cadastrar: " + error.response?.data?.error || error.message);
+      Alert.alert("Erro", "Falha ao cadastrar: " + (error.response?.data?.error || error.message));
     }
   });
 
-  // 3. Atualização
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<UserData>) => userService.updateUser(data),
+    mutationFn: (data: Partial<UserData>) => {
+      const user = useAuthStore.getState().user;
+      if (!user?.sessionToken) throw new Error("Usuário não logado");
+      return userService.updateUser({ ...data, sessionToken: user.sessionToken });
+    },
     onSuccess: (userData) => {
-      setUser(userData);
+      const currentUser = useAuthStore.getState().user;
+      setUser({ ...currentUser, ...userData });
       Alert.alert("Sucesso", "Perfil atualizado!");
     },
     onError: (error: any) => {
@@ -44,24 +47,29 @@ export const useUser = () => {
     }
   });
 
-  // 4. Deletar conta
   const deleteMutation = useMutation({
     mutationFn: () => {
       const user = useAuthStore.getState().user;
-      if (!user?.sessionToken) throw new Error("Usuário não logado");
-      return userService.deleteUser(user.sessionToken);
+
+      console.log("Deletando usuário:", user?.objectId); // Debug
+
+      if (!user?.sessionToken || !user?.objectId) {
+        throw new Error("Sessão inválida ou ID de usuário não encontrado.");
+      }
+
+      return userService.deleteUser(user.objectId, user.sessionToken);
     },
     onSuccess: () => {
       logout();
       router.replace('/login');
-      Alert.alert("Conta excluída", "Seus dados foram removidos.");
+      Alert.alert("Conta excluída", "Seus dados foram removidos com sucesso.");
     },
     onError: (error: any) => {
-      Alert.alert("Erro", "Não foi possível excluir: " + error.response?.data?.error || error.message);
+      console.error("Erro detalhado:", error.response?.data);
+      Alert.alert("Erro", "Não foi possível excluir: " + (error.response?.data?.error || error.message));
     }
   });
 
-  // 5. Logout
   const logoutMutation = useMutation({
     mutationFn: () => {
       const user = useAuthStore.getState().user;
