@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Modal, Pressable } from 'react-native';
-// Adicionei useTheme aqui para garantir que o texto fique legível sobre o fundo
 import { Layout, Text, Button, Divider, useTheme } from '@ui-kitten/components';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import api from '../api/dogApi';
@@ -75,7 +74,7 @@ export default function HomeScreen() {
     <View style={styles.mainWrapper}>
       
       <Image
-        source={require('../../assets/images/footprints.gif')} // Certifique-se que o arquivo está nesta pasta
+        source={require('../../assets/images/footprints.gif')}
         style={styles.backgroundGif}
         resizeMode="cover"
       />
