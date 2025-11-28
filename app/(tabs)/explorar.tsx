@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext, useMemo } from 'react';
-import { FlatList, Image, StyleSheet, TouchableOpacity, View, ScrollView, Pressable, Keyboard, Modal } from 'react-native';
+import { FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Pressable, Keyboard, Modal } from 'react-native';
+import { Image } from 'expo-image';
 import { Layout, Text, Card, Button, Spinner, Input, Divider, CheckBox } from '@ui-kitten/components';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../api/dogApi';
@@ -7,7 +8,6 @@ import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import { translateTemperament, translateBreedGroup, translateGeneric, translateLifeSpan } from '../../src/utils/dogUtils';
 
 const getIconColor = (props: any) => props?.style?.tintColor || '#8F9BB3';
-
 const SearchIcon = (props: any) => <Ionicons name="search-outline" size={24} color={getIconColor(props)} />;
 const FilterIcon = (props: any) => <Ionicons name="funnel-outline" size={24} color={getIconColor(props)} />;
 const InfoIcon = (props: any) => <Ionicons name="information-circle-outline" size={24} color={getIconColor(props)} />;
@@ -48,22 +48,18 @@ export default function ExplorarScreen() {
   const [breeds, setBreeds] = useState<Dog[]>([]);
   const [loading, setLoading] = useState(true);
   const { favoritos, addFavorite } = useContext(FavoritesContext);
-
   const [searchText, setSearchText] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-  
   const [minLife, setMinLife] = useState('');
   const [maxLife, setMaxLife] = useState('');
   const [minWeight, setMinWeight] = useState('');
   const [maxWeight, setMaxWeight] = useState('');
   const [minHeight, setMinHeight] = useState('');
   const [maxHeight, setMaxHeight] = useState('');
-
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [selectedTemperaments, setSelectedTemperaments] = useState<string[]>([]);
   const [selectedOrigins, setSelectedOrigins] = useState<string[]>([]);
   const [selectedBredFor, setSelectedBredFor] = useState<string[]>([]);
-
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [selectedBreed, setSelectedBreed] = useState<Dog | null>(null);
 
@@ -86,41 +82,19 @@ export default function ExplorarScreen() {
     const temperaments = new Set<string>();
     const origins = new Set<string>();
     const bredFors = new Set<string>();
-
     breeds.forEach(b => {
       if (b.breed_group) groups.add(translateBreedGroup(b.breed_group));
-      if (b.temperament) {
-        const translatedTemp = translateTemperament(b.temperament); 
-        translatedTemp.split(', ').forEach(t => temperaments.add(t.trim()));
-      }
-      if (b.origin) {
-        const translatedOrigin = translateGeneric(b.origin);
-        translatedOrigin.split(', ').forEach(o => { if(o && o !== 'Desconhecido') origins.add(o.trim()); });
-      }
-      if (b.bred_for) {
-        const translatedBred = translateGeneric(b.bred_for);
-        bredFors.add(translatedBred);
-      }
+      if (b.temperament) { const translatedTemp = translateTemperament(b.temperament); translatedTemp.split(', ').forEach(t => temperaments.add(t.trim())); }
+      if (b.origin) { const translatedOrigin = translateGeneric(b.origin); translatedOrigin.split(', ').forEach(o => { if(o && o !== 'Desconhecido') origins.add(o.trim()); }); }
+      if (b.bred_for) { const translatedBred = translateGeneric(b.bred_for); bredFors.add(translatedBred); }
     });
-    return {
-      groups: Array.from(groups).sort(),
-      temperaments: Array.from(temperaments).sort(),
-      origins: Array.from(origins).sort(),
-      bredFors: Array.from(bredFors).sort()
-    };
+    return { groups: Array.from(groups).sort(), temperaments: Array.from(temperaments).sort(), origins: Array.from(origins).sort(), bredFors: Array.from(bredFors).sort() };
   }, [breeds]);
 
-  const openDetails = (breed: Dog) => {
-    setSelectedBreed(breed);
-    setDetailsModalVisible(true);
-  };
+  const openDetails = (breed: Dog) => { setSelectedBreed(breed); setDetailsModalVisible(true); };
   const closeFilters = () => { Keyboard.dismiss(); setFilterModalVisible(false); };
   const closeDetails = () => setDetailsModalVisible(false);
-
-  const toggleSelection = (list: string[], setList: Function, value: string) => {
-    if (list.includes(value)) setList(list.filter(item => item !== value));
-    else setList([...list, value]);
-  };
+  const toggleSelection = (list: string[], setList: Function, value: string) => { if (list.includes(value)) setList(list.filter(item => item !== value)); else setList([...list, value]); };
 
   const filteredBreeds = breeds.filter((breed) => {
     const matchesName = breed.name?.toLowerCase().includes(searchText.toLowerCase());
@@ -128,29 +102,22 @@ export default function ExplorarScreen() {
     const userMinLife = minLife ? parseFloat(minLife) : 0;
     const userMaxLife = maxLife ? parseFloat(maxLife) : 999;
     const matchesLife = lifeRange.min >= userMinLife && lifeRange.max <= userMaxLife;
-
     const weightRange = parseRange(breed.weight?.metric);
     const userMinWeight = minWeight ? parseFloat(minWeight) : 0;
     const userMaxWeight = maxWeight ? parseFloat(maxWeight) : 999;
     const matchesWeight = weightRange.min >= userMinWeight && weightRange.max <= userMaxWeight;
-
     const heightRange = parseRange(breed.height?.metric);
     const userMinHeight = minHeight ? parseFloat(minHeight) : 0;
     const userMaxHeight = maxHeight ? parseFloat(maxHeight) : 999;
     const matchesHeight = heightRange.min >= userMinHeight && heightRange.max <= userMaxHeight;
-
     const translatedGroup = translateBreedGroup(breed.breed_group);
     const matchesGroup = selectedGroups.length === 0 || selectedGroups.includes(translatedGroup);
-
     const translatedTemp = translateTemperament(breed.temperament);
     const matchesTemperament = selectedTemperaments.length === 0 || selectedTemperaments.some(t => translatedTemp.includes(t));
-
     const translatedOrigin = translateGeneric(breed.origin);
     const matchesOrigin = selectedOrigins.length === 0 || selectedOrigins.some(o => translatedOrigin.includes(o));
-
     const translatedBred = translateGeneric(breed.bred_for);
     const matchesBredFor = selectedBredFor.length === 0 || selectedBredFor.some(b => translatedBred.includes(b));
-
     return matchesName && matchesLife && matchesWeight && matchesHeight && matchesGroup && matchesTemperament && matchesOrigin && matchesBredFor;
   });
 
@@ -159,24 +126,17 @@ export default function ExplorarScreen() {
     const lifeSpanTraduzido = translateLifeSpan(item.life_span);
     const temperamentoTraduzido = translateTemperament(item.temperament);
     const resumoTemperamento = temperamentoTraduzido.length > 50 ? temperamentoTraduzido.substring(0, 50) + '...' : temperamentoTraduzido;
-
     return (
       <Card style={styles.card}>
         <TouchableOpacity onPress={() => openDetails(item)}>
-          {item.image?.url ? (
-            <Image source={{ uri: item.image.url }} style={styles.image} />
-          ) : (
-            <Layout style={[styles.image, styles.noImg]}><Text appearance="hint">Sem imagem</Text></Layout>
-          )}
+          {item.image?.url ? <Image source={{ uri: item.image.url }} style={styles.image} contentFit="cover" /> : <Layout style={[styles.image, styles.noImg]}><Text appearance="hint">Sem imagem</Text></Layout>}
         </TouchableOpacity>
         <Text category="h6" style={styles.name}>{item.name}</Text>
         {item.temperament && <Text appearance="hint" category='c1' style={styles.info}>🧠 {resumoTemperamento}</Text>}
         {item.life_span && <Text appearance="hint" category='c1' style={styles.info}>❤️ Vida: {lifeSpanTraduzido}</Text>}
         <View style={styles.buttonGroup}>
           <Button style={{flex: 1, marginRight: 8}} size='small' appearance='outline' accessoryLeft={InfoIcon} onPress={() => openDetails(item)}>Detalhes</Button>
-          <Button style={{flex: 1}} size='small' status={isFavorito ? 'danger' : 'primary'} onPress={() => addFavorite({id: item.id, url: item.image?.url || '', name: item.name, breeds: [{ name: item.name || '', temperament: item.temperament, life_span: item.life_span, breed_group: item.breed_group, bred_for: item.bred_for, origin: item.origin, weight: item.weight, height: item.height }]})}>
-            {isFavorito ? 'Salvo' : 'Salvar'}
-          </Button>
+          <Button style={{flex: 1}} size='small' status={isFavorito ? 'danger' : 'primary'} onPress={() => addFavorite({id: item.id, url: item.image?.url || '', name: item.name, breeds: [{ name: item.name || '', temperament: item.temperament, life_span: item.life_span, breed_group: item.breed_group, bred_for: item.bred_for, origin: item.origin, weight: item.weight, height: item.height }]})}>{isFavorito ? 'Salvo' : 'Salvar'}</Button>
         </View>
       </Card>
     );
@@ -186,8 +146,7 @@ export default function ExplorarScreen() {
 
   return (
     <View style={styles.mainWrapper}>
-      <Image source={require('../../assets/images/footprints.gif')} style={styles.backgroundGif} resizeMode="cover" />
-      
+      <Image source={require('../../assets/images/footprints.gif')} style={styles.backgroundGif} contentFit="cover" />
       <Layout style={[styles.container, { backgroundColor: 'transparent' }]}>
         <View style={styles.headerContainer}>
           <Input style={styles.searchInput} placeholder='Buscar raça...' value={searchText} accessoryLeft={SearchIcon} onChangeText={setSearchText} />
@@ -231,12 +190,12 @@ export default function ExplorarScreen() {
           <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
             <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
               <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-                <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 20 }}>
+                <ScrollView showsVerticalScrollIndicator={true}>
                   <View style={styles.modalHeader}>
                     <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{selectedBreed.name}</Text>
                     <TouchableOpacity onPress={closeDetails}><Ionicons name="close-outline" size={28} color="#000" /></TouchableOpacity>
                   </View>
-                  {selectedBreed.image?.url && <Image source={{ uri: selectedBreed.image.url }} style={styles.detailImage} />}
+                  {selectedBreed.image?.url && <Image source={{ uri: selectedBreed.image.url }} style={styles.detailImage} contentFit="cover" />}
                   <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
                   <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{selectedBreed.height?.metric ? `${selectedBreed.height.metric} cm` : 'N/A'}</Text></View>
                   <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{selectedBreed.weight?.metric ? `${selectedBreed.weight.metric} kg` : 'N/A'}</Text></View>
@@ -247,7 +206,7 @@ export default function ExplorarScreen() {
                   {selectedBreed.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{translateBreedGroup(selectedBreed.breed_group)}</Text></View>}
                   {selectedBreed.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{translateGeneric(selectedBreed.bred_for)}</Text></View>}
                   {selectedBreed.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{translateGeneric(selectedBreed.origin)}</Text></View>}
-                  <Button style={{ marginTop: 24, marginBottom: 10 }} status={favoritos.some(f => String(f.id) === String(selectedBreed.id)) ? 'danger' : 'primary'} onPress={() => addFavorite({ id: selectedBreed.id, url: selectedBreed.image?.url || '', name: selectedBreed.name, breeds: [{ name: selectedBreed.name || '', temperament: selectedBreed.temperament, life_span: selectedBreed.life_span, breed_group: selectedBreed.breed_group, bred_for: selectedBreed.bred_for, origin: selectedBreed.origin, weight: selectedBreed.weight, height: selectedBreed.height }] })}>
+                  <Button style={{ marginTop: 24, marginBottom: 20 }} status={favoritos.some(f => String(f.id) === String(selectedBreed.id)) ? 'danger' : 'primary'} onPress={() => addFavorite({ id: selectedBreed.id, url: selectedBreed.image?.url || '', name: selectedBreed.name, breeds: [{ name: selectedBreed.name || '', temperament: selectedBreed.temperament, life_span: selectedBreed.life_span, breed_group: selectedBreed.breed_group, bred_for: selectedBreed.bred_for, origin: selectedBreed.origin, weight: selectedBreed.weight, height: selectedBreed.height }] })}>
                     {favoritos.some(f => String(f.id) === String(selectedBreed.id)) ? 'Salvo' : 'Salvar nos Favoritos ❤️'}
                   </Button>
                 </ScrollView>

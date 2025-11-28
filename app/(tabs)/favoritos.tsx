@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react';
-import { Image, FlatList, StyleSheet, View, TouchableOpacity, ScrollView, Pressable, Modal } from 'react-native';
+import { FlatList, StyleSheet, View, TouchableOpacity, ScrollView, Pressable, Modal } from 'react-native';
+import { Image } from 'expo-image';
 import { Layout, Text, Card, Button, Divider } from '@ui-kitten/components';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import { translateTemperament, translateBreedGroup, translateGeneric, translateLifeSpan } from '../../src/utils/dogUtils';
@@ -10,20 +11,16 @@ export default function FavoritosScreen() {
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
 
-  const openDetails = (dog: Dog) => {
-    setSelectedDog(dog);
-    setDetailsModalVisible(true);
-  };
+  const openDetails = (dog: Dog) => { setSelectedDog(dog); setDetailsModalVisible(true); };
   const closeDetails = () => setDetailsModalVisible(false);
 
   const renderItem = ({ item }: { item: Dog }) => {
     const imageUrl = item.url || 'https://placehold.co/300x200?text=Sem+Imagem';
     const name = item.name || item.breeds?.[0]?.name || 'Sem nome';
-
     return (
       <Card style={styles.card}>
         <TouchableOpacity onPress={() => openDetails(item)}>
-          <Image source={{ uri: imageUrl }} style={styles.foto} />
+          <Image source={{ uri: imageUrl }} style={styles.foto} contentFit="cover" />
         </TouchableOpacity>
         <Text category="h6" style={styles.nome}>{name}</Text>
         <Button style={styles.btnRemover} status="danger" onPress={() => removeFavorite(item.id)}>Remover ❤️</Button>
@@ -51,32 +48,22 @@ export default function FavoritosScreen() {
 
   return (
     <View style={styles.mainWrapper}>
-      <Image source={require('../../assets/images/footprints.gif')} style={styles.backgroundGif} resizeMode="cover" />
-      
+      <Image source={require('../../assets/images/footprints.gif')} style={styles.backgroundGif} contentFit="cover" />
       <Layout style={[styles.container, { backgroundColor: 'transparent' }]}>
         <Text category="h5" style={styles.titulo}>Favoritos</Text>
-
-        {favoritos.length === 0 ? (
-          <Text appearance="hint" style={styles.vazio}>Você ainda não favoritou nada 🐶✨</Text>
-        ) : (
-          <FlatList
-            data={favoritos}
-            keyExtractor={(item, index) => String(item.id || index)}
-            renderItem={renderItem}
-            contentContainerStyle={{ paddingBottom: 80 }}
-          />
-        )}
+        {favoritos.length === 0 ? <Text appearance="hint" style={styles.vazio}>Você ainda não favoritou nada 🐶✨</Text> : <FlatList data={favoritos} keyExtractor={(item, index) => String(item.id || index)} renderItem={renderItem} contentContainerStyle={{ paddingBottom: 80 }} />}
 
         {detailsModalVisible && details && (
           <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
             <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
               <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-                <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 20 }}>
+                <ScrollView showsVerticalScrollIndicator={true}>
                   <View style={styles.modalHeader}>
                     <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{details.name}</Text>
                     <TouchableOpacity onPress={closeDetails}><Ionicons name="close-outline" size={28} color="#000" /></TouchableOpacity>
                   </View>
-                  {details.url && <Image source={{ uri: details.url }} style={styles.detailImage} />}
+                  {details.url && <Image source={{ uri: details.url }} style={styles.detailImage} contentFit="cover" />}
+                  
                   <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
                   <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
                   <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>

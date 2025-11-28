@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Modal, Pressable } from 'react-native';
-import { Layout, Text, Button, Divider, useTheme } from '@ui-kitten/components';
+import { FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Modal, Pressable } from 'react-native';
+import { Image } from 'expo-image'; 
+import { Layout, Text, Button, Divider } from '@ui-kitten/components';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import api from '../api/dogApi';
 import { useRouter } from 'expo-router';
@@ -9,7 +10,6 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const theme = useTheme();
   const { favoritos, addFavorite, removeFavorite } = useContext(FavoritesContext);
   const [recomendados, setRecomendados] = useState<Dog[]>([]);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
@@ -42,7 +42,7 @@ export default function HomeScreen() {
 
     return (
       <TouchableOpacity onPress={() => openDetails(item)} style={styles.recCard}>
-        <Image source={{ uri: item.url || 'https://placehold.co/300x200' }} style={styles.recImage} />
+        <Image source={{ uri: item.url || 'https://placehold.co/300x200' }} style={styles.recImage} contentFit="cover" />
         <Text category="s1" style={styles.recTitle} numberOfLines={1}>{name}</Text>
         {breed?.temperament && <Text appearance="hint" style={styles.infoText}>🧠 {resumoTemperamento}</Text>}
         {lifeSpan && <Text appearance="hint" style={styles.infoText}>❤️ {lifeSpan}</Text>}
@@ -72,22 +72,11 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.mainWrapper}>
-      
-      <Image
-        source={require('../../assets/images/footprints.gif')}
-        style={styles.backgroundGif}
-        resizeMode="cover"
-      />
-
-      <Layout style={styles.container}>
+      <Image source={require('../../assets/images/footprints.gif')} style={styles.backgroundGif} contentFit="cover" />
+      <Layout style={[styles.container, { backgroundColor: 'transparent' }]}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          
           <View style={styles.logoHeaderContainer}>
-            <Image 
-              source={require('../../assets/images/adotepetlogo.png')} 
-              style={styles.logoHeader}
-              resizeMode="contain"
-            />
+            <Image source={require('../../assets/images/adotepetlogo.png')} style={styles.logoHeader} contentFit="contain" />
           </View>
 
           <View style={styles.row}>
@@ -122,12 +111,10 @@ export default function HomeScreen() {
         {detailsModalVisible && details && (
           <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
             <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
+              
               <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-                <ScrollView 
-                  showsVerticalScrollIndicator={true} 
-                  contentContainerStyle={{ paddingBottom: 20 }} 
-                  style={{maxHeight: '100%'}}
-                >
+                
+                <ScrollView showsVerticalScrollIndicator={true}>
                   <View style={styles.modalHeader}>
                     <Text category='h5' style={{ fontWeight: 'bold', flex: 1 }}>{details.name}</Text>
                     <TouchableOpacity onPress={closeDetails}>
@@ -135,23 +122,23 @@ export default function HomeScreen() {
                     </TouchableOpacity>
                   </View>
 
-                  {details.url && <Image source={{ uri: details.url }} style={styles.detailImage} />}
+                  {details.url && <Image source={{ uri: details.url }} style={styles.detailImage} contentFit="cover" />}
 
                   <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
-                  <Text>📏 Altura: {details.height || 'N/A'}</Text>
-                  <Text>⚖️ Peso: {details.weight || 'N/A'}</Text>
-                  <Text>❤️ Vida: {details.life_span || 'N/A'}</Text>
+                  <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
+                  <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
+                  <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{details.life_span || 'N/A'}</Text></View>
 
                   <Divider style={{ marginVertical: 12 }} />
 
                   <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
-                  <Text>🧠 Temperamento: {details.temperament}</Text>
-                  {details.breed_group && <Text>🏷️ Grupo: {details.breed_group}</Text>}
-                  {details.bred_for && <Text>🛠️ Criado para: {details.bred_for}</Text>}
-                  {details.origin && <Text>🌍 Origem: {details.origin}</Text>}
+                  <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
+                  {details.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
+                  {details.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
+                  {details.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
 
                   <Button
-                    style={{ marginTop: 24 }}
+                    style={{ marginTop: 24, marginBottom: 20 }}
                     status={isSelectedFavorito ? 'danger' : 'primary'}
                     onPress={() => {
                       if (isSelectedFavorito && selectedDog) removeFavorite(selectedDog.id);
@@ -171,52 +158,15 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  mainWrapper: {
-    flex: 1,
-    position: 'relative',
-    backgroundColor: '#fff',
-  },
-  backgroundGif: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: -1,
-    opacity: 0.1,
-  },
-
-  container: { 
-    flex: 1, 
-    padding: 18, 
-    paddingTop: 50,
-    backgroundColor: 'transparent',
-  },
-  
-  logoHeaderContainer: {
-    marginBottom: 20,
-    alignItems: 'center', 
-    justifyContent: 'center'
-  },
-  logoHeader: {
-    width: 150,
-    height: 80,
-  },
-
+  mainWrapper: { flex: 1, position: 'relative', backgroundColor: '#fff' },
+  backgroundGif: { position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, width: '100%', height: '100%', zIndex: -1, opacity: 0.1 },
+  container: { flex: 1, padding: 18, paddingTop: 50 },
+  logoHeaderContainer: { marginBottom: 10, alignItems: 'center', justifyContent: 'center' },
+  logoHeader: { width: 150, height: 80 },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
-  
-  mainCard: { 
-    width: '48%', 
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 16 
-  },
-
+  mainCard: { width: '48%', paddingVertical: 12, paddingHorizontal: 18, borderRadius: 16 },
   mainCardTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFF' },
   mainCardSub: { marginTop: 4, fontSize: 12, color: '#F0F0F0' },
-  
   statsTitle: { fontWeight: 'bold', marginBottom: 10 },
   statsBox: { width: '100%', padding: 16, borderRadius: 14, backgroundColor: '#EEE', marginBottom: 22 },
   recCard: { width: 160, marginRight: 12, borderRadius: 16, padding: 0 },
@@ -228,7 +178,6 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: 'rgba(0,0,0,0.6)', 
     justifyContent: 'center', 
-    alignItems: 'center',
     padding: 20 
   },
   modalContent: { 
@@ -240,6 +189,10 @@ const styles = StyleSheet.create({
     elevation: 5 
   },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  
   detailImage: { width: '100%', height: 250, borderRadius: 12, marginBottom: 16, resizeMode: 'cover' },
   sectionTitle: { marginTop: 8, marginBottom: 8, color: '#3366FF', fontWeight: 'bold', fontSize: 16 },
+  
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', paddingBottom: 4 },
+  detailBlock: { marginBottom: 10 }
 });
