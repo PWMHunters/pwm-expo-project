@@ -47,46 +47,46 @@ export default function FavoritosScreen() {
   const details = getDetails(selectedDog);
 
   return (
-    <View style={styles.mainWrapper}>
-      <Image source={require('../../assets/images/footprints.gif')} style={styles.backgroundGif} contentFit="cover" />
-      <Layout style={[styles.container, { backgroundColor: 'transparent' }]}>
-        <Text category="h5" style={styles.titulo}>Favoritos</Text>
-        {favoritos.length === 0 ? <Text appearance="hint" style={styles.vazio}>Você ainda não favoritou nada 🐶✨</Text> : <FlatList data={favoritos} keyExtractor={(item, index) => String(item.id || index)} renderItem={renderItem} contentContainerStyle={{ paddingBottom: 80 }} />}
+    <Layout style={styles.container}>
+      <Text category="h5" style={styles.titulo}>Favoritos</Text>
+      {favoritos.length === 0 ? <Text appearance="hint" style={styles.vazio}>Você ainda não favoritou nada 🐶✨</Text> : <FlatList data={favoritos} keyExtractor={(item, index) => String(item.id || index)} renderItem={renderItem} contentContainerStyle={{ paddingBottom: 80 }} />}
 
-        {detailsModalVisible && details && (
-          <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
-            <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
-              <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-                <ScrollView showsVerticalScrollIndicator={true}>
-                  <View style={styles.modalHeader}>
-                    <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{details.name}</Text>
-                    <TouchableOpacity onPress={closeDetails}><Ionicons name="close-outline" size={28} color="#000" /></TouchableOpacity>
-                  </View>
-                  {details.url && <Image source={{ uri: details.url }} style={styles.detailImage} contentFit="cover" />}
-                  
-                  <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
-                  <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
-                  <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
-                  <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{details.life_span || 'N/A'}</Text></View>
-                  <Divider style={{marginVertical: 12}}/>
-                  <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
-                  <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
-                  {details.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
-                  {details.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
-                  {details.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
-                </ScrollView>
-              </Pressable>
+      {detailsModalVisible && details && (
+        <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
+          <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
+            <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+              <View style={styles.modalHeader}>
+                <Text category='h5' style={{fontWeight: 'bold', flex: 1}} numberOfLines={1}>{details.name}</Text>
+                <TouchableOpacity onPress={closeDetails} hitSlop={10}><Ionicons name="close-outline" size={28} color="#000" /></TouchableOpacity>
+              </View>
+              <ScrollView showsVerticalScrollIndicator={true} style={{flex: 1}}>
+                {details.url && <Image source={{ uri: details.url }} style={styles.detailImage} contentFit="cover" />}
+                <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoItem}>📏 {details.height ? `${details.height} cm` : 'N/A'}</Text>
+                  <Text style={styles.infoItem}>⚖️ {details.weight || 'N/A'} kg</Text>
+                  <Text style={styles.infoItem}>❤️ {translateLifeSpan(details.life_span)}</Text>
+                </View>
+                <Divider style={{marginVertical: 6}}/>
+                <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
+                <View style={{ gap: 8 }}>
+                  <Text style={styles.value}><Text style={styles.label}>🧠 Temperamento: </Text>{details.temperament}</Text>
+                  {details.breed_group && <Text style={styles.value}><Text style={styles.label}>🏷️ Grupo: </Text>{details.breed_group}</Text>}
+                  {details.origin && <Text style={styles.value}><Text style={styles.label}>🌍 Origem: </Text>{details.origin}</Text>}
+                </View>
+                <Button style={{ marginTop: 24, marginBottom: 20 }} size='medium' status='danger' onPress={() => { removeFavorite(selectedDog!.id); closeDetails(); }}>
+                  Remover dos Favoritos
+                </Button>
+              </ScrollView>
             </Pressable>
-          </Modal>
-        )}
-      </Layout>
-    </View>
+          </Pressable>
+        </Modal>
+      )}
+    </Layout>
   );
 }
 
 const styles = StyleSheet.create({
-  mainWrapper: { flex: 1, position: 'relative', backgroundColor: '#fff' },
-  backgroundGif: { position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, width: '100%', height: '100%', zIndex: -1, opacity: 0.1 },
   container: { flex: 1, padding: 16, paddingTop: 50 },
   titulo: { marginBottom: 16, fontWeight: 'bold' },
   card: { marginBottom: 20, borderRadius: 16, borderWidth: 0, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
@@ -94,12 +94,15 @@ const styles = StyleSheet.create({
   nome: { marginTop: 12, marginBottom: 6, fontWeight: 'bold' },
   btnRemover: { marginTop: 12, borderRadius: 10 },
   vazio: { marginTop: 40, fontSize: 16, textAlign: 'center' },
+  
 
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 20 },
-  modalContent: { width: '100%', backgroundColor: '#FFF', borderRadius: 16, padding: 20, maxHeight: '85%', elevation: 5 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  detailImage: { width: '100%', height: 250, borderRadius: 12, marginBottom: 16, resizeMode: 'cover' },
-  sectionTitle: { marginTop: 8, marginBottom: 8, color: '#3366FF', fontWeight: 'bold', fontSize: 16 },
-  detailRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', paddingBottom: 4 },
-  detailBlock: { marginBottom: 10 }
+  modalContent: { width: '100%', backgroundColor: '#FFF', borderRadius: 16, padding: 20, height: '85%', elevation: 5 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  detailImage: { width: '100%', height: 220, borderRadius: 12, marginBottom: 16 },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  infoItem: { fontSize: 14, fontWeight: '600', color: '#555' },
+  label: { fontWeight: 'bold', color: '#3366FF', fontSize: 14 },
+  value: { fontSize: 14, color: '#333', lineHeight: 20 },
+  sectionTitle: { marginTop: 10, marginBottom: 8, color: '#3366FF', fontWeight: 'bold', fontSize: 16 },
 });

@@ -100,30 +100,24 @@ export default function AbrigoScreen() {
   );
 
   return (
-    <View style={styles.mainWrapper}>
-      <Image source={require('../../assets/images/footprints.gif')} style={styles.backgroundGif} resizeMode="cover" />
-      
-      <View style={[
-        styles.container, 
-        { paddingTop: insets.top > 0 ? insets.top + 10 : 40 } 
-      ]}>
-        <Text style={styles.titulo}>🐶 Abrigos Parceiros</Text>
-        <FlatList
-          data={abrigos}
-          keyExtractor={(item) => item.id}
-          renderItem={renderAbrigo}
-          contentContainerStyle={{ paddingBottom: 100 }} 
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
+    <View style={[
+      styles.container, 
+      { paddingTop: insets.top > 0 ? insets.top + 10 : 40 } 
+    ]}>
+      <Text style={styles.titulo}>🐶 Abrigos Parceiros</Text>
+      <FlatList
+        data={abrigos}
+        keyExtractor={(item) => item.id}
+        renderItem={renderAbrigo}
+        contentContainerStyle={{ paddingBottom: 100 }} 
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  mainWrapper: { flex: 1, position: 'relative', backgroundColor: '#fff' },
-  backgroundGif: { position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, width: '100%', height: '100%', zIndex: -1, opacity: 0.1 },
-  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 16 },
+  container: { flex: 1, backgroundColor: '#F5F5F5', paddingHorizontal: 16 },
   titulo: { fontSize: 26, fontWeight: 'bold', marginBottom: 16, color: '#333' },
   card: { backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 18, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
   nome: { fontSize: 20, fontWeight: 'bold', marginBottom: 4, color: '#000' },
