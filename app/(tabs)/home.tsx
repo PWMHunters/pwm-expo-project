@@ -72,8 +72,14 @@ export default function HomeScreen() {
   return (
     <Layout style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Text category="h4" style={styles.titulo}>Olá 👋</Text>
-        <Text category="s1" style={styles.subtitulo}>Pronto para descobrir novas raças hoje?</Text>
+        
+        <View style={styles.logoHeaderContainer}>
+          <Image 
+            source={require('../../assets/images/adotepetlogo.png')} 
+            style={styles.logoHeader}
+            resizeMode="contain"
+          />
+        </View>
 
         <View style={styles.row}>
           <TouchableOpacity style={[styles.mainCard, { backgroundColor: '#4A90E2' }]} onPress={() => router.push("/(tabs)/explorar")}>
@@ -110,7 +116,7 @@ export default function HomeScreen() {
             <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
               <ScrollView 
                 showsVerticalScrollIndicator={true} 
-                contentContainerStyle={{ paddingBottom: 20 }}
+                contentContainerStyle={{ paddingBottom: 20 }} 
                 style={{maxHeight: '100%'}}
               >
                 <View style={styles.modalHeader}>
@@ -156,12 +162,29 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 18, paddingTop: 50 },
-  titulo: { fontWeight: 'bold', marginBottom: 4 },
-  subtitulo: { marginBottom: 22 },
+  
+  logoHeaderContainer: {
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  logoHeader: {
+    width: 150,
+    height: 80,
+  },
+
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
-  mainCard: { width: '48%', padding: 18, borderRadius: 16 },
-  mainCardTitle: { fontSize: 20, fontWeight: 'bold', color: '#FFF' },
-  mainCardSub: { marginTop: 6, fontSize: 14, color: '#F0F0F0' },
+  
+  mainCard: { 
+    width: '48%', 
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 16 
+  },
+
+  mainCardTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFF' },
+  mainCardSub: { marginTop: 4, fontSize: 12, color: '#F0F0F0' },
+  
   statsTitle: { fontWeight: 'bold', marginBottom: 10 },
   statsBox: { width: '100%', padding: 16, borderRadius: 14, backgroundColor: '#EEE', marginBottom: 22 },
   recCard: { width: 160, marginRight: 12, borderRadius: 16, padding: 0 },
@@ -182,7 +205,7 @@ const styles = StyleSheet.create({
     borderRadius: 16, 
     padding: 20,
     maxHeight: '85%',
-    elevation: 5
+    elevation: 5 
   },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   detailImage: { width: '100%', height: 250, borderRadius: 12, marginBottom: 16, resizeMode: 'cover' },

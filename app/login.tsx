@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { useUser } from '../src/hooks/useUser'; // <--- Importando nosso Hook
+import { View, TextInput, Button, Text, StyleSheet, Alert, ActivityIndicator, Image } from 'react-native';
+import { useUser } from '../src/hooks/useUser';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
 
-  // Puxando tudo do nosso Hook poderoso
   const { login, signUp, isLoadingLogin, isLoadingSignUp } = useUser();
 
   const isLoading = isLoadingLogin || isLoadingSignUp;
@@ -16,7 +15,6 @@ export default function LoginScreen() {
     if (!email || !password) return Alert.alert("Erro", "Preencha todos os campos");
 
     if (isRegistering) {
-      // Como o Parse exige Username, usamos o email como username
       signUp({ 
         username: email, 
         email: email, 
@@ -29,6 +27,15 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      
+      <View style={styles.logoContainer}>
+        <Image 
+          source={require('../assets/images/adotepetlogoapenas.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
       <Text style={styles.title}>AdotePet Login</Text>
       
       <TextInput 
@@ -65,6 +72,16 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' },
+  
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+  },
+
   title: { fontSize: 28, fontWeight: 'bold', marginBottom: 30, textAlign: 'center' },
   input: { borderWidth: 1, borderColor: '#ddd', padding: 15, borderRadius: 8, marginBottom: 15, fontSize: 16 },
   link: { marginTop: 20, color: '#007AFF', textAlign: 'center' }
