@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Modal, Pressable } from 'react-native';
-import { Layout, Text, Button, Divider } from '@ui-kitten/components';
+// Adicionei useTheme aqui para garantir que o texto fique legível sobre o fundo
+import { Layout, Text, Button, Divider, useTheme } from '@ui-kitten/components';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import api from '../api/dogApi';
 import { useRouter } from 'expo-router';
@@ -9,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const theme = useTheme();
   const { favoritos, addFavorite, removeFavorite } = useContext(FavoritesContext);
   const [recomendados, setRecomendados] = useState<Dog[]>([]);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
@@ -70,102 +72,133 @@ export default function HomeScreen() {
   const isSelectedFavorito = details ? favoritos.some(f => String(f.id) === String(details.id)) : false;
 
   return (
-    <Layout style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        
-        <View style={styles.logoHeaderContainer}>
-          <Image 
-            source={require('../../assets/images/adotepetlogo.png')} 
-            style={styles.logoHeader}
-            resizeMode="contain"
+    <View style={styles.mainWrapper}>
+      
+      <Image
+        source={require('../../assets/images/footprints.gif')} // Certifique-se que o arquivo está nesta pasta
+        style={styles.backgroundGif}
+        resizeMode="cover"
+      />
+
+      <Layout style={styles.container}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          
+          <View style={styles.logoHeaderContainer}>
+            <Image 
+              source={require('../../assets/images/adotepetlogo.png')} 
+              style={styles.logoHeader}
+              resizeMode="contain"
+            />
+          </View>
+
+          <View style={styles.row}>
+            <TouchableOpacity style={[styles.mainCard, { backgroundColor: '#4A90E2' }]} onPress={() => router.push("/(tabs)/explorar")}>
+              <Text style={styles.mainCardTitle}>🔍 Explorar</Text>
+              <Text style={styles.mainCardSub}>Veja todas as raças</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.mainCard, { backgroundColor: '#E24A4A' }]} onPress={() => router.push("/(tabs)/favoritos")}>
+              <Text style={styles.mainCardTitle}>❤️ Favoritos</Text>
+              <Text style={styles.mainCardSub}>{favoritos.length} salvos</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text category="h6" style={styles.statsTitle}>Suas Estatísticas</Text>
+          <View style={styles.statsBox}>
+            <Text category="s1">Favoritos: {favoritos.length}</Text>
+            <Text appearance="hint">Raças registradas na app</Text>
+          </View>
+
+          <Text category="h6" style={styles.statsTitle}>Recomendados Hoje</Text>
+          <FlatList
+            data={recomendados}
+            keyExtractor={(item) => String(item.id || Math.random())}
+            renderItem={renderRecomendado}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
           />
-        </View>
+        </ScrollView>
 
-        <View style={styles.row}>
-          <TouchableOpacity style={[styles.mainCard, { backgroundColor: '#4A90E2' }]} onPress={() => router.push("/(tabs)/explorar")}>
-            <Text style={styles.mainCardTitle}>🔍 Explorar</Text>
-            <Text style={styles.mainCardSub}>Veja todas as raças</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.mainCard, { backgroundColor: '#E24A4A' }]} onPress={() => router.push("/(tabs)/favoritos")}>
-            <Text style={styles.mainCardTitle}>❤️ Favoritos</Text>
-            <Text style={styles.mainCardSub}>{favoritos.length} salvos</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text category="h6" style={styles.statsTitle}>Suas Estatísticas</Text>
-        <View style={styles.statsBox}>
-          <Text category="s1">Favoritos: {favoritos.length}</Text>
-          <Text appearance="hint">Raças registradas na app</Text>
-        </View>
-
-        <Text category="h6" style={styles.statsTitle}>Recomendados Hoje</Text>
-        <FlatList
-          data={recomendados}
-          keyExtractor={(item) => String(item.id || Math.random())}
-          renderItem={renderRecomendado}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        />
-      </ScrollView>
-
-      {detailsModalVisible && details && (
-        <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
-          <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
-            <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-              <ScrollView 
-                showsVerticalScrollIndicator={true} 
-                contentContainerStyle={{ paddingBottom: 20 }} 
-                style={{maxHeight: '100%'}}
-              >
-                <View style={styles.modalHeader}>
-                  <Text category='h5' style={{ fontWeight: 'bold', flex: 1 }}>{details.name}</Text>
-                  <TouchableOpacity onPress={closeDetails}>
-                    <Ionicons name="close-outline" size={28} color="#000" />
-                  </TouchableOpacity>
-                </View>
-
-                {details.url && <Image source={{ uri: details.url }} style={styles.detailImage} />}
-
-                <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
-                <Text>📏 Altura: {details.height || 'N/A'}</Text>
-                <Text>⚖️ Peso: {details.weight || 'N/A'}</Text>
-                <Text>❤️ Vida: {details.life_span || 'N/A'}</Text>
-
-                <Divider style={{ marginVertical: 12 }} />
-
-                <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
-                <Text>🧠 Temperamento: {details.temperament}</Text>
-                {details.breed_group && <Text>🏷️ Grupo: {details.breed_group}</Text>}
-                {details.bred_for && <Text>🛠️ Criado para: {details.bred_for}</Text>}
-                {details.origin && <Text>🌍 Origem: {details.origin}</Text>}
-
-                <Button
-                  style={{ marginTop: 24 }}
-                  status={isSelectedFavorito ? 'danger' : 'primary'}
-                  onPress={() => {
-                    if (isSelectedFavorito && selectedDog) removeFavorite(selectedDog.id);
-                    else if(selectedDog) addFavorite(selectedDog);
-                  }}
+        {detailsModalVisible && details && (
+          <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
+            <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
+              <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+                <ScrollView 
+                  showsVerticalScrollIndicator={true} 
+                  contentContainerStyle={{ paddingBottom: 20 }} 
+                  style={{maxHeight: '100%'}}
                 >
-                  {isSelectedFavorito ? 'Remover dos Favoritos' : 'Salvar nos Favoritos ❤️'}
-                </Button>
-              </ScrollView>
+                  <View style={styles.modalHeader}>
+                    <Text category='h5' style={{ fontWeight: 'bold', flex: 1 }}>{details.name}</Text>
+                    <TouchableOpacity onPress={closeDetails}>
+                      <Ionicons name="close-outline" size={28} color="#000" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {details.url && <Image source={{ uri: details.url }} style={styles.detailImage} />}
+
+                  <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
+                  <Text>📏 Altura: {details.height || 'N/A'}</Text>
+                  <Text>⚖️ Peso: {details.weight || 'N/A'}</Text>
+                  <Text>❤️ Vida: {details.life_span || 'N/A'}</Text>
+
+                  <Divider style={{ marginVertical: 12 }} />
+
+                  <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
+                  <Text>🧠 Temperamento: {details.temperament}</Text>
+                  {details.breed_group && <Text>🏷️ Grupo: {details.breed_group}</Text>}
+                  {details.bred_for && <Text>🛠️ Criado para: {details.bred_for}</Text>}
+                  {details.origin && <Text>🌍 Origem: {details.origin}</Text>}
+
+                  <Button
+                    style={{ marginTop: 24 }}
+                    status={isSelectedFavorito ? 'danger' : 'primary'}
+                    onPress={() => {
+                      if (isSelectedFavorito && selectedDog) removeFavorite(selectedDog.id);
+                      else if(selectedDog) addFavorite(selectedDog);
+                    }}
+                  >
+                    {isSelectedFavorito ? 'Remover dos Favoritos' : 'Salvar nos Favoritos ❤️'}
+                  </Button>
+                </ScrollView>
+              </Pressable>
             </Pressable>
-          </Pressable>
-        </Modal>
-      )}
-    </Layout>
+          </Modal>
+        )}
+      </Layout>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 18, paddingTop: 50 },
+  mainWrapper: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: '#fff',
+  },
+  backgroundGif: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: -1,
+    opacity: 0.1,
+  },
+
+  container: { 
+    flex: 1, 
+    padding: 18, 
+    paddingTop: 50,
+    backgroundColor: 'transparent',
+  },
   
   logoHeaderContainer: {
     marginBottom: 20,
-    alignItems: 'center',
+    alignItems: 'center', 
     justifyContent: 'center'
   },
   logoHeader: {

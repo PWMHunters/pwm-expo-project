@@ -185,79 +185,84 @@ export default function ExplorarScreen() {
   if (loading) return <Layout style={styles.loading}><Spinner size="giant" /><Text category="s1" style={{ marginTop: 12 }}>Carregando raças...</Text></Layout>;
 
   return (
-    <Layout style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Input style={styles.searchInput} placeholder='Buscar raça...' value={searchText} accessoryLeft={SearchIcon} onChangeText={setSearchText} />
-        <Button style={styles.filterButton} appearance='outline' accessoryLeft={FilterIcon} onPress={() => setFilterModalVisible(true)} />
-      </View>
-      <Text category="h6" style={styles.resultText}>{filteredBreeds.length} raças encontradas</Text>
-      <FlatList data={filteredBreeds} keyExtractor={(item) => item.id.toString()} renderItem={renderItem} contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false} />
+    <View style={styles.mainWrapper}>
+      <Image source={require('../../assets/images/footprints.gif')} style={styles.backgroundGif} resizeMode="cover" />
+      
+      <Layout style={[styles.container, { backgroundColor: 'transparent' }]}>
+        <View style={styles.headerContainer}>
+          <Input style={styles.searchInput} placeholder='Buscar raça...' value={searchText} accessoryLeft={SearchIcon} onChangeText={setSearchText} />
+          <Button style={styles.filterButton} appearance='outline' accessoryLeft={FilterIcon} onPress={() => setFilterModalVisible(true)} />
+        </View>
+        <Text category="h6" style={styles.resultText}>{filteredBreeds.length} raças encontradas</Text>
+        <FlatList data={filteredBreeds} keyExtractor={(item) => item.id.toString()} renderItem={renderItem} contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false} />
 
-      {/* MODAL DE FILTROS */}
-      {filterModalVisible && (
-        <Modal visible={filterModalVisible} animationType="fade" transparent onRequestClose={closeFilters}>
-          <Pressable style={styles.modalBackdrop} onPress={closeFilters}>
-            <Pressable style={[styles.modalCard, { maxHeight: '90%' }]} onPress={(e) => e.stopPropagation()}>
-              <Card disabled={true} style={{flex: 1, borderRadius: 16, borderWidth: 0}}>
-                <View style={styles.modalHeader}><Text category='h6'>Filtros Avançados</Text></View>
-                <ScrollView showsVerticalScrollIndicator={true}>
-                  <View style={styles.filterRow}>
-                    <View style={{ flex: 1, marginRight: 8 }}><Text category='s2' style={styles.label}>Vida (anos)</Text><View style={{ flexDirection: 'row', alignItems: 'center' }}><Input style={{ flex: 1 }} placeholder='Min' keyboardType='numeric' value={minLife} onChangeText={setMinLife} size='small' /><Text style={{ marginHorizontal: 4 }}>-</Text><Input style={{ flex: 1 }} placeholder='Max' keyboardType='numeric' value={maxLife} onChangeText={setMaxLife} size='small' /></View></View>
-                    <View style={{ flex: 1 }}><Text category='s2' style={styles.label}>Peso (kg)</Text><View style={{ flexDirection: 'row', alignItems: 'center' }}><Input style={{ flex: 1 }} placeholder='Min' keyboardType='numeric' value={minWeight} onChangeText={setMinWeight} size='small' /><Text style={{ marginHorizontal: 4 }}>-</Text><Input style={{ flex: 1 }} placeholder='Max' keyboardType='numeric' value={maxWeight} onChangeText={setMaxWeight} size='small' /></View></View>
+        {filterModalVisible && (
+          <Modal visible={filterModalVisible} animationType="fade" transparent onRequestClose={closeFilters}>
+            <Pressable style={styles.modalBackdrop} onPress={closeFilters}>
+              <Pressable style={[styles.modalCard, { maxHeight: '90%' }]} onPress={(e) => e.stopPropagation()}>
+                <Card disabled={true} style={{flex: 1, borderRadius: 16, borderWidth: 0}}>
+                  <View style={styles.modalHeader}><Text category='h6'>Filtros Avançados</Text></View>
+                  <ScrollView showsVerticalScrollIndicator={true}>
+                    <View style={styles.filterRow}>
+                      <View style={{ flex: 1, marginRight: 8 }}><Text category='s2' style={styles.label}>Vida (anos)</Text><View style={{ flexDirection: 'row', alignItems: 'center' }}><Input style={{ flex: 1 }} placeholder='Min' keyboardType='numeric' value={minLife} onChangeText={setMinLife} size='small' /><Text style={{ marginHorizontal: 4 }}>-</Text><Input style={{ flex: 1 }} placeholder='Max' keyboardType='numeric' value={maxLife} onChangeText={setMaxLife} size='small' /></View></View>
+                      <View style={{ flex: 1 }}><Text category='s2' style={styles.label}>Peso (kg)</Text><View style={{ flexDirection: 'row', alignItems: 'center' }}><Input style={{ flex: 1 }} placeholder='Min' keyboardType='numeric' value={minWeight} onChangeText={setMinWeight} size='small' /><Text style={{ marginHorizontal: 4 }}>-</Text><Input style={{ flex: 1 }} placeholder='Max' keyboardType='numeric' value={maxWeight} onChangeText={setMaxWeight} size='small' /></View></View>
+                    </View>
+                    <View style={[styles.filterRow, { marginTop: 12 }]}>
+                      <View style={{ flex: 1, marginRight: 8 }}><Text category='s2' style={styles.label}>Altura (cm)</Text><View style={{ flexDirection: 'row', alignItems: 'center' }}><Input style={{ flex: 1 }} placeholder='Min' keyboardType='numeric' value={minHeight} onChangeText={setMinHeight} size='small' /><Text style={{ marginHorizontal: 4 }}>-</Text><Input style={{ flex: 1 }} placeholder='Max' keyboardType='numeric' value={maxHeight} onChangeText={setMaxHeight} size='small' /></View></View>
+                    </View>
+                    <Divider style={{ marginVertical: 16 }}/>
+                    <MultiSelectAccordion title="Grupos de Raça" options={options.groups} selectedValues={selectedGroups} onToggle={(val: string) => toggleSelection(selectedGroups, setSelectedGroups, val)} />
+                    <MultiSelectAccordion title="Temperamento" options={options.temperaments} selectedValues={selectedTemperaments} onToggle={(val: string) => toggleSelection(selectedTemperaments, setSelectedTemperaments, val)} />
+                    <MultiSelectAccordion title="Origem" options={options.origins} selectedValues={selectedOrigins} onToggle={(val: string) => toggleSelection(selectedOrigins, setSelectedOrigins, val)} />
+                    <MultiSelectAccordion title="Criado Para" options={options.bredFors} selectedValues={selectedBredFor} onToggle={(val: string) => toggleSelection(selectedBredFor, setSelectedBredFor, val)} />
+                    <View style={{ height: 20 }} />
+                  </ScrollView>
+                  <View style={{ paddingTop: 10, borderTopWidth: 1, borderColor: '#EEE' }}>
+                    <Button style={{ marginTop: 10 }} onPress={closeFilters}>Ver Resultados</Button>
+                    <Button style={{ marginTop: 10 }} appearance='ghost' status='basic' onPress={() => { setSelectedGroups([]); setSelectedTemperaments([]); setSelectedOrigins([]); setSelectedBredFor([]); setMinLife(''); setMaxLife(''); setMinWeight(''); setMaxWeight(''); setMinHeight(''); setMaxHeight(''); closeFilters(); }}>Limpar Filtros</Button>
                   </View>
-                  <View style={[styles.filterRow, { marginTop: 12 }]}>
-                    <View style={{ flex: 1, marginRight: 8 }}><Text category='s2' style={styles.label}>Altura (cm)</Text><View style={{ flexDirection: 'row', alignItems: 'center' }}><Input style={{ flex: 1 }} placeholder='Min' keyboardType='numeric' value={minHeight} onChangeText={setMinHeight} size='small' /><Text style={{ marginHorizontal: 4 }}>-</Text><Input style={{ flex: 1 }} placeholder='Max' keyboardType='numeric' value={maxHeight} onChangeText={setMaxHeight} size='small' /></View></View>
+                </Card>
+              </Pressable>
+            </Pressable>
+          </Modal>
+        )}
+
+        {detailsModalVisible && selectedBreed && (
+          <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
+            <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
+              <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+                <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 20 }}>
+                  <View style={styles.modalHeader}>
+                    <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{selectedBreed.name}</Text>
+                    <TouchableOpacity onPress={closeDetails}><Ionicons name="close-outline" size={28} color="#000" /></TouchableOpacity>
                   </View>
-                  <Divider style={{ marginVertical: 16 }}/>
-                  <MultiSelectAccordion title="Grupos de Raça" options={options.groups} selectedValues={selectedGroups} onToggle={(val: string) => toggleSelection(selectedGroups, setSelectedGroups, val)} />
-                  <MultiSelectAccordion title="Temperamento" options={options.temperaments} selectedValues={selectedTemperaments} onToggle={(val: string) => toggleSelection(selectedTemperaments, setSelectedTemperaments, val)} />
-                  <MultiSelectAccordion title="Origem" options={options.origins} selectedValues={selectedOrigins} onToggle={(val: string) => toggleSelection(selectedOrigins, setSelectedOrigins, val)} />
-                  <MultiSelectAccordion title="Criado Para" options={options.bredFors} selectedValues={selectedBredFor} onToggle={(val: string) => toggleSelection(selectedBredFor, setSelectedBredFor, val)} />
-                  <View style={{ height: 20 }} />
+                  {selectedBreed.image?.url && <Image source={{ uri: selectedBreed.image.url }} style={styles.detailImage} />}
+                  <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
+                  <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{selectedBreed.height?.metric ? `${selectedBreed.height.metric} cm` : 'N/A'}</Text></View>
+                  <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{selectedBreed.weight?.metric ? `${selectedBreed.weight.metric} kg` : 'N/A'}</Text></View>
+                  <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{translateLifeSpan(selectedBreed.life_span)}</Text></View>
+                  <Divider style={{marginVertical: 12}}/>
+                  <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
+                  <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{translateTemperament(selectedBreed.temperament)}</Text></View>
+                  {selectedBreed.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{translateBreedGroup(selectedBreed.breed_group)}</Text></View>}
+                  {selectedBreed.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{translateGeneric(selectedBreed.bred_for)}</Text></View>}
+                  {selectedBreed.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{translateGeneric(selectedBreed.origin)}</Text></View>}
+                  <Button style={{ marginTop: 24, marginBottom: 10 }} status={favoritos.some(f => String(f.id) === String(selectedBreed.id)) ? 'danger' : 'primary'} onPress={() => addFavorite({ id: selectedBreed.id, url: selectedBreed.image?.url || '', name: selectedBreed.name, breeds: [{ name: selectedBreed.name || '', temperament: selectedBreed.temperament, life_span: selectedBreed.life_span, breed_group: selectedBreed.breed_group, bred_for: selectedBreed.bred_for, origin: selectedBreed.origin, weight: selectedBreed.weight, height: selectedBreed.height }] })}>
+                    {favoritos.some(f => String(f.id) === String(selectedBreed.id)) ? 'Salvo' : 'Salvar nos Favoritos ❤️'}
+                  </Button>
                 </ScrollView>
-                <View style={{ paddingTop: 10, borderTopWidth: 1, borderColor: '#EEE' }}>
-                  <Button style={{ marginTop: 10 }} onPress={closeFilters}>Ver Resultados</Button>
-                  <Button style={{ marginTop: 10 }} appearance='ghost' status='basic' onPress={() => { setSelectedGroups([]); setSelectedTemperaments([]); setSelectedOrigins([]); setSelectedBredFor([]); setMinLife(''); setMaxLife(''); setMinWeight(''); setMaxWeight(''); setMinHeight(''); setMaxHeight(''); closeFilters(); }}>Limpar Filtros</Button>
-                </View>
-              </Card>
+              </Pressable>
             </Pressable>
-          </Pressable>
-        </Modal>
-      )}
-
-      {detailsModalVisible && selectedBreed && (
-        <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
-          <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
-            <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-              <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 20 }}>
-                <View style={styles.modalHeader}>
-                  <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{selectedBreed.name}</Text>
-                  <TouchableOpacity onPress={closeDetails}><Ionicons name="close-outline" size={28} color="#000" /></TouchableOpacity>
-                </View>
-                {selectedBreed.image?.url && <Image source={{ uri: selectedBreed.image.url }} style={styles.detailImage} />}
-                <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
-                <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{selectedBreed.height?.metric ? `${selectedBreed.height.metric} cm` : 'N/A'}</Text></View>
-                <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{selectedBreed.weight?.metric ? `${selectedBreed.weight.metric} kg` : 'N/A'}</Text></View>
-                <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{translateLifeSpan(selectedBreed.life_span)}</Text></View>
-                <Divider style={{marginVertical: 12}}/>
-                <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
-                <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{translateTemperament(selectedBreed.temperament)}</Text></View>
-                {selectedBreed.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{translateBreedGroup(selectedBreed.breed_group)}</Text></View>}
-                {selectedBreed.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{translateGeneric(selectedBreed.bred_for)}</Text></View>}
-                {selectedBreed.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{translateGeneric(selectedBreed.origin)}</Text></View>}
-                <Button style={{ marginTop: 24, marginBottom: 10 }} status={favoritos.some(f => String(f.id) === String(selectedBreed.id)) ? 'danger' : 'primary'} onPress={() => addFavorite({ id: selectedBreed.id, url: selectedBreed.image?.url || '', name: selectedBreed.name, breeds: [{ name: selectedBreed.name || '', temperament: selectedBreed.temperament, life_span: selectedBreed.life_span, breed_group: selectedBreed.breed_group, bred_for: selectedBreed.bred_for, origin: selectedBreed.origin, weight: selectedBreed.weight, height: selectedBreed.height }] })}>
-                  {favoritos.some(f => String(f.id) === String(selectedBreed.id)) ? 'Salvo' : 'Salvar nos Favoritos ❤️'}
-                </Button>
-              </ScrollView>
-            </Pressable>
-          </Pressable>
-        </Modal>
-      )}
-    </Layout>
+          </Modal>
+        )}
+      </Layout>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  mainWrapper: { flex: 1, position: 'relative', backgroundColor: '#fff' },
+  backgroundGif: { position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, width: '100%', height: '100%', zIndex: -1, opacity: 0.1 },
   container: { flex: 1, padding: 16, paddingTop: 50 },
   headerContainer: { flexDirection: 'row', marginBottom: 12, gap: 10 },
   searchInput: { flex: 1, borderRadius: 12 },
@@ -270,22 +275,10 @@ const styles = StyleSheet.create({
   info: { marginBottom: 4, color: '#666' },
   buttonGroup: { flexDirection: 'row', marginTop: 12, gap: 8 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
-  modalBackdrop: { 
-    flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.6)', 
-    justifyContent: 'center', 
-    padding: 20 
-  },
-  modalCard: { width: '100%', borderRadius: 16, flexShrink: 1 }, // Usado no filtro
-  modalContent: { 
-    width: '100%',
-    backgroundColor: '#FFF', 
-    borderRadius: 16, 
-    padding: 20,
-    maxHeight: '85%',
-    elevation: 5 
-  },
+  
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 20 },
+  modalCard: { width: '100%', borderRadius: 16, flexShrink: 1 },
+  modalContent: { width: '100%', backgroundColor: '#FFF', borderRadius: 16, padding: 20, maxHeight: '85%', elevation: 5 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   label: { marginBottom: 8, marginTop: 4, color: '#888', fontWeight: 'bold', fontSize: 12 },
   filterRow: { flexDirection: 'row', justifyContent: 'space-between' },
