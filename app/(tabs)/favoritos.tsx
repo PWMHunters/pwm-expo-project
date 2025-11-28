@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Image, FlatList, StyleSheet, View, TouchableOpacity, ScrollView, Pressable } from 'react-native';
+import { Image, FlatList, StyleSheet, View, TouchableOpacity, ScrollView, Pressable, Modal } from 'react-native';
 import { Layout, Text, Card, Button, Divider } from '@ui-kitten/components';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import { translateTemperament, translateBreedGroup, translateGeneric, translateLifeSpan } from '../../src/utils/dogUtils';
@@ -7,7 +7,6 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function FavoritosScreen() {
   const { favoritos, removeFavorite } = useContext(FavoritesContext);
-  
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
 
@@ -15,10 +14,7 @@ export default function FavoritosScreen() {
     setSelectedDog(dog);
     setDetailsModalVisible(true);
   };
-
-  const closeDetails = () => {
-    setDetailsModalVisible(false);
-  };
+  const closeDetails = () => setDetailsModalVisible(false);
 
   const renderItem = ({ item }: { item: Dog }) => {
     const imageUrl = item.url || 'https://placehold.co/300x200?text=Sem+Imagem';
@@ -29,18 +25,8 @@ export default function FavoritosScreen() {
         <TouchableOpacity onPress={() => openDetails(item)}>
           <Image source={{ uri: imageUrl }} style={styles.foto} />
         </TouchableOpacity>
-
-        <Text category="h6" style={styles.nome}>
-          {name}
-        </Text>
-
-        <Button
-          style={styles.btnRemover}
-          status="danger"
-          onPress={() => removeFavorite(item.id)}
-        >
-          Remover ❤️
-        </Button>
+        <Text category="h6" style={styles.nome}>{name}</Text>
+        <Button style={styles.btnRemover} status="danger" onPress={() => removeFavorite(item.id)}>Remover ❤️</Button>
       </Card>
     );
   };
@@ -65,14 +51,10 @@ export default function FavoritosScreen() {
 
   return (
     <Layout style={styles.container}>
-      <Text category="h5" style={styles.titulo}>
-        Favoritos
-      </Text>
+      <Text category="h5" style={styles.titulo}>Favoritos</Text>
 
       {favoritos.length === 0 ? (
-        <Text appearance="hint" style={styles.vazio}>
-          Você ainda não favoritou nada 🐶✨
-        </Text>
+        <Text appearance="hint" style={styles.vazio}>Você ainda não favoritou nada 🐶✨</Text>
       ) : (
         <FlatList
           data={favoritos}
@@ -83,42 +65,29 @@ export default function FavoritosScreen() {
       )}
 
       {detailsModalVisible && details && (
-        <Pressable 
-          style={styles.modalBackdrop} 
-          onPress={closeDetails}
-        >
-          <Pressable style={[styles.modalCard, { maxHeight: '85%' }]} onPress={(e) => e.stopPropagation()}>
-            <Card disabled={true} style={{flex: 1, borderRadius: 16, borderWidth: 0}}>
-              <ScrollView showsVerticalScrollIndicator={false}>
+        <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
+          <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
+            <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+              <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 20 }}>
                 <View style={styles.modalHeader}>
                   <Text category='h5' style={{fontWeight: 'bold', flex: 1}}>{details.name}</Text>
-                  <TouchableOpacity onPress={closeDetails}>
-                    <Ionicons name="close-outline" size={28} color="#000" />
-                  </TouchableOpacity>
+                  <TouchableOpacity onPress={closeDetails}><Ionicons name="close-outline" size={28} color="#000" /></TouchableOpacity>
                 </View>
-
-                {details.url && (
-                  <Image source={{ uri: details.url }} style={styles.detailImage} />
-                )}
-
+                {details.url && <Image source={{ uri: details.url }} style={styles.detailImage} />}
                 <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
                 <View style={styles.detailRow}><Text category='s1'>📏 Altura:</Text><Text>{details.height ? `${details.height} cm` : 'N/A'}</Text></View>
                 <View style={styles.detailRow}><Text category='s1'>⚖️ Peso:</Text><Text>{details.weight ? `${details.weight} kg` : 'N/A'}</Text></View>
                 <View style={styles.detailRow}><Text category='s1'>❤️ Vida:</Text><Text>{details.life_span || 'N/A'}</Text></View>
-
                 <Divider style={{marginVertical: 12}}/>
-
                 <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
                 <View style={styles.detailBlock}><Text category='s1'>🧠 Temperamento:</Text><Text appearance='hint'>{details.temperament}</Text></View>
                 {details.breed_group && <View style={styles.detailBlock}><Text category='s1'>🏷️ Grupo:</Text><Text appearance='hint'>{details.breed_group}</Text></View>}
                 {details.bred_for && <View style={styles.detailBlock}><Text category='s1'>🛠️ Criado para:</Text><Text appearance='hint'>{details.bred_for}</Text></View>}
                 {details.origin && <View style={styles.detailBlock}><Text category='s1'>🌍 Origem:</Text><Text appearance='hint'>{details.origin}</Text></View>}
-
-                <View style={{marginBottom: 20}} /> 
               </ScrollView>
-            </Card>
+            </Pressable>
           </Pressable>
-        </Pressable>
+        </Modal>
       )}
     </Layout>
   );
@@ -133,8 +102,20 @@ const styles = StyleSheet.create({
   btnRemover: { marginTop: 12, borderRadius: 10 },
   vazio: { marginTop: 40, fontSize: 16, textAlign: 'center' },
 
-  modalBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: 20, paddingBottom: 60 },
-  modalCard: { width: '100%', borderRadius: 16 },
+  modalBackdrop: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.6)', 
+    justifyContent: 'center', 
+    padding: 20 
+  },
+  modalContent: { 
+    width: '100%',
+    backgroundColor: '#FFF', 
+    borderRadius: 16, 
+    padding: 20,
+    maxHeight: '85%',
+    elevation: 5 
+  },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   detailImage: { width: '100%', height: 250, borderRadius: 12, marginBottom: 16, resizeMode: 'cover' },
   sectionTitle: { marginTop: 8, marginBottom: 8, color: '#3366FF', fontWeight: 'bold', fontSize: 16 },

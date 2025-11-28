@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Modal } from 'react-native';
+import { Image, FlatList, TouchableOpacity, StyleSheet, View, ScrollView, Modal, Pressable } from 'react-native';
 import { Layout, Text, Button, Divider } from '@ui-kitten/components';
 import { FavoritesContext, Dog } from '../context/FavoritesContext';
 import api from '../api/dogApi';
@@ -104,12 +104,15 @@ export default function HomeScreen() {
         />
       </ScrollView>
 
-      {/* Modal de detalhes */}
       {detailsModalVisible && details && (
-        <Modal visible={detailsModalVisible} animationType="slide" transparent onRequestClose={closeDetails}>
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalContent}>
-              <ScrollView showsVerticalScrollIndicator={true} nestedScrollEnabled={true} contentContainerStyle={{ paddingBottom: 40 }}>
+        <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
+          <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
+            <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+              <ScrollView 
+                showsVerticalScrollIndicator={true} 
+                contentContainerStyle={{ paddingBottom: 20 }}
+                style={{maxHeight: '100%'}}
+              >
                 <View style={styles.modalHeader}>
                   <Text category='h5' style={{ fontWeight: 'bold', flex: 1 }}>{details.name}</Text>
                   <TouchableOpacity onPress={closeDetails}>
@@ -136,15 +139,15 @@ export default function HomeScreen() {
                   style={{ marginTop: 24 }}
                   status={isSelectedFavorito ? 'danger' : 'primary'}
                   onPress={() => {
-                    if (isSelectedFavorito) removeFavorite(selectedDog!.id);
-                    else addFavorite(selectedDog!);
+                    if (isSelectedFavorito && selectedDog) removeFavorite(selectedDog.id);
+                    else if(selectedDog) addFavorite(selectedDog);
                   }}
                 >
                   {isSelectedFavorito ? 'Remover dos Favoritos' : 'Salvar nos Favoritos ❤️'}
                 </Button>
               </ScrollView>
-            </View>
-          </View>
+            </Pressable>
+          </Pressable>
         </Modal>
       )}
     </Layout>
@@ -166,8 +169,21 @@ const styles = StyleSheet.create({
   recTitle: { marginTop: 4, marginBottom: 4, fontWeight: 'bold', fontSize: 16 },
   infoText: { fontSize: 12, marginBottom: 2, color: '#666' },
 
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 20 },
-  modalContent: { flex: 1, backgroundColor: '#FFF', borderRadius: 16, padding: 20 },
+  modalBackdrop: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.6)', 
+    justifyContent: 'center', 
+    alignItems: 'center',
+    padding: 20 
+  },
+  modalContent: { 
+    width: '100%',
+    backgroundColor: '#FFF', 
+    borderRadius: 16, 
+    padding: 20,
+    maxHeight: '85%',
+    elevation: 5
+  },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   detailImage: { width: '100%', height: 250, borderRadius: 12, marginBottom: 16, resizeMode: 'cover' },
   sectionTitle: { marginTop: 8, marginBottom: 8, color: '#3366FF', fontWeight: 'bold', fontSize: 16 },
