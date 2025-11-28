@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useUser } from '../../src/hooks/useUser';
 import { useAuthStore } from '../../src/store/authStore';
@@ -9,31 +9,13 @@ import { useAuthStore } from '../../src/store/authStore';
 export default function ProfileScreen() {
   const currentUser = useAuthStore((state) => state.user);
 
-  const { updateUser, isUpdating, deleteUser, isDeleting, logout } = useUser();
-
-  const [formEmail, setFormEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
+  const { deleteUser, isDeleting, logout } = useUser();
 
   useEffect(() => {
     if (!currentUser) {
       router.replace('/login');
-    } else if (currentUser.email) {
-      setFormEmail(currentUser.email);
     }
   }, [currentUser]);
-
-  const handleUpdate = () => {
-    const updates: any = {};
-    if (formEmail !== currentUser?.email) updates.email = formEmail;
-    if (newPassword) updates.password = newPassword;
-
-    if (Object.keys(updates).length === 0) {
-      setIsEditing(false);
-      return;
-    }
-    updateUser(updates, { onSuccess: () => { setIsEditing(false); setNewPassword(''); } });
-  };
 
   const handleDeleteAccount = () => {
     if (Platform.OS === 'web') {
@@ -73,56 +55,36 @@ export default function ProfileScreen() {
     <ScrollView
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
     >
       <View style={styles.header}>
         <Ionicons name="person-circle-outline" size={100} color="#4a90e2" />
         <Text style={styles.title}>Meu Perfil</Text>
-        <Text style={{ color: '#999', marginTop: 5 }}>{currentUser.username}</Text>
+        <Text style={styles.username}>{currentUser.username}</Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.label}>E-mail</Text>
-        <TextInput
-          style={[styles.input, !isEditing && styles.disabledInput]}
-          value={formEmail}
-          onChangeText={setFormEmail}
-          editable={isEditing}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-
-        {isEditing && (
-          <>
-            <Text style={styles.label}>Nova Senha</Text>
-            <TextInput
-              style={styles.input}
-              value={newPassword}
-              onChangeText={setNewPassword}
-              placeholder="Vazio para manter atual"
-              secureTextEntry
-            />
-          </>
-        )}
-
-        {isEditing ? (
-          <View style={styles.row}>
-            <TouchableOpacity style={[styles.button, styles.cancelBtn]} onPress={() => { setIsEditing(false); setFormEmail(currentUser.email); setNewPassword(''); }}>
-              <Text style={styles.btnText}>Cancelar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.saveBtn]} onPress={handleUpdate} disabled={isUpdating}>
-              {isUpdating ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Salvar</Text>}
-            </TouchableOpacity>
+        <View style={styles.infoRow}>
+          <Ionicons name="mail-outline" size={20} color="#666" style={{ marginRight: 10 }} />
+          <View>
+            <Text style={styles.label}>E-mail</Text>
+            <Text style={styles.value}>{currentUser.email}</Text>
           </View>
-        ) : (
-          <TouchableOpacity style={[styles.button, styles.editBtn]} onPress={() => setIsEditing(true)}>
-            <Text style={styles.btnText}>Editar Dados</Text>
-          </TouchableOpacity>
-        )}
+        </View>
+
+        <View style={[styles.infoRow, { marginTop: 15 }]}>
+          <Ionicons name="calendar-outline" size={20} color="#666" style={{ marginRight: 10 }} />
+          <View>
+            <Text style={styles.label}>Membro desde</Text>
+            <Text style={styles.value}>
+              {currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString('pt-BR') : 'Data desconhecida'}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.logoutBtn} onPress={() => logout()}>
+          <Ionicons name="log-out-outline" size={20} color="#4a90e2" style={{ marginRight: 8 }} />
           <Text style={styles.logoutText}>Sair do App</Text>
         </TouchableOpacity>
 
@@ -133,7 +95,10 @@ export default function ProfileScreen() {
         >
           {isDeleting ?
             <ActivityIndicator color="red" /> :
-            <Text style={styles.deleteText}>Excluir Minha Conta</Text>
+            <>
+              <Ionicons name="trash-outline" size={20} color="#FF3D71" style={{ marginRight: 8 }} />
+              <Text style={styles.deleteText}>Excluir Minha Conta</Text>
+            </>
           }
         </TouchableOpacity>
       </View>
@@ -150,21 +115,48 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     alignItems: 'center'
   },
-  header: { alignItems: 'center', marginBottom: 20, marginTop: 20, width: '100%' },
+  header: { alignItems: 'center', marginBottom: 30, marginTop: 20, width: '100%' },
   title: { fontSize: 24, fontWeight: 'bold', marginTop: 10, color: '#333' },
-  card: { width: '100%', backgroundColor: '#fff', borderRadius: 15, padding: 20, elevation: 3 },
-  label: { fontSize: 14, color: '#666', marginBottom: 5, marginTop: 10 },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 16, backgroundColor: '#fff' },
-  disabledInput: { backgroundColor: '#f9f9f9', color: '#888', borderColor: '#eee' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
-  button: { padding: 15, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  editBtn: { backgroundColor: '#4a90e2', marginTop: 20 },
-  saveBtn: { backgroundColor: '#28a745', flex: 0.48 },
-  cancelBtn: { backgroundColor: '#999', flex: 0.48 },
-  btnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  footer: { width: '100%', marginTop: 20, alignItems: 'center', },
-  logoutBtn: { padding: 15, width: '100%', alignItems: 'center', marginBottom: 10 },
+  username: { color: '#666', marginTop: 5, fontSize: 16 },
+
+  card: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    marginBottom: 30
+  },
+  infoRow: { flexDirection: 'row', alignItems: 'center' },
+  label: { fontSize: 12, color: '#888', textTransform: 'uppercase', marginBottom: 2 },
+  value: { fontSize: 16, color: '#333', fontWeight: '500' },
+
+  footer: { width: '100%', alignItems: 'center' },
+
+  logoutBtn: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#4a90e2',
+    padding: 15,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    marginBottom: 15
+  },
   logoutText: { color: '#4a90e2', fontSize: 16, fontWeight: '600' },
-  deleteBtn: { padding: 15, width: '100%', alignItems: 'center', justifyContent: 'center', marginTop: 10 },
-  deleteText: { color: 'red', fontSize: 14, fontWeight: 'bold' }
+
+  deleteBtn: {
+    flexDirection: 'row',
+    padding: 15,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  deleteText: { color: '#FF3D71', fontSize: 14, fontWeight: 'bold' }
 });
