@@ -55,26 +55,56 @@ export default function FavoritosScreen() {
         <Modal visible={detailsModalVisible} animationType="fade" transparent onRequestClose={closeDetails}>
           <Pressable style={styles.modalBackdrop} onPress={closeDetails}>
             <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+              
               <View style={styles.modalHeader}>
-                <Text category='h5' style={{fontWeight: 'bold', flex: 1}} numberOfLines={1}>{details.name}</Text>
-                <TouchableOpacity onPress={closeDetails} hitSlop={10}><Ionicons name="close-outline" size={28} color="#000" /></TouchableOpacity>
+                <Text category='h5' style={{fontWeight: 'bold', flex: 1, color: '#000'}} numberOfLines={1}>
+                  {details.name}
+                </Text>
+                <TouchableOpacity onPress={closeDetails} hitSlop={10}>
+                  <Ionicons name="close-circle" size={30} color="#333" />
+                </TouchableOpacity>
               </View>
-              <ScrollView showsVerticalScrollIndicator={true} style={{flex: 1}}>
+              
+              <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 20 }}>
                 {details.url && <Image source={{ uri: details.url }} style={styles.detailImage} contentFit="cover" />}
+                
                 <Text category='h6' style={styles.sectionTitle}>Características Físicas</Text>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoItem}>📏 {details.height ? `${details.height} cm` : 'N/A'}</Text>
                   <Text style={styles.infoItem}>⚖️ {details.weight || 'N/A'} kg</Text>
-                  <Text style={styles.infoItem}>❤️ {translateLifeSpan(details.life_span)}</Text>
+                  <Text style={styles.infoItem}>❤️ {details.life_span}</Text>
                 </View>
-                <Divider style={{marginVertical: 6}}/>
+
+                <Divider style={{marginVertical: 10, backgroundColor: '#E4E9F2'}}/>
+
                 <Text category='h6' style={styles.sectionTitle}>Sobre a Raça</Text>
                 <View style={{ gap: 8 }}>
-                  <Text style={styles.value}><Text style={styles.label}>🧠 Temperamento: </Text>{details.temperament}</Text>
-                  {details.breed_group && <Text style={styles.value}><Text style={styles.label}>🏷️ Grupo: </Text>{details.breed_group}</Text>}
-                  {details.origin && <Text style={styles.value}><Text style={styles.label}>🌍 Origem: </Text>{details.origin}</Text>}
+                  <Text style={styles.value}>
+                    <Text style={styles.label}>🧠 Temperamento: </Text>
+                    {details.temperament}
+                  </Text>
+                  
+                  {details.breed_group && (
+                    <Text style={styles.value}>
+                      <Text style={styles.label}>🏷️ Grupo: </Text>
+                      {details.breed_group}
+                    </Text>
+                  )}
+                  
+                  {details.origin && (
+                    <Text style={styles.value}>
+                      <Text style={styles.label}>🌍 Origem: </Text>
+                      {details.origin}
+                    </Text>
+                  )}
                 </View>
-                <Button style={{ marginTop: 24, marginBottom: 20 }} size='medium' status='danger' onPress={() => { removeFavorite(selectedDog!.id); closeDetails(); }}>
+
+                <Button 
+                  style={{ marginTop: 24 }} 
+                  size='medium' 
+                  status='danger' 
+                  onPress={() => { removeFavorite(selectedDog!.id); closeDetails(); }}
+                >
                   Remover dos Favoritos
                 </Button>
               </ScrollView>
@@ -95,14 +125,31 @@ const styles = StyleSheet.create({
   btnRemover: { marginTop: 12, borderRadius: 10 },
   vazio: { marginTop: 40, fontSize: 16, textAlign: 'center' },
   
-
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 20 },
-  modalContent: { width: '100%', backgroundColor: '#FFF', borderRadius: 16, padding: 20, height: '85%', elevation: 5 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  detailImage: { width: '100%', height: 220, borderRadius: 12, marginBottom: 16 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  modalBackdrop: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.6)', 
+    justifyContent: 'center', 
+    padding: 20,
+    alignItems: 'center'
+  },
+  modalContent: { 
+    width: '100%', 
+    backgroundColor: '#FFF', 
+    borderRadius: 16, 
+    padding: 20, 
+    maxHeight: '85%', 
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    display: 'flex', 
+  },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  detailImage: { width: '100%', height: 200, borderRadius: 12, marginBottom: 16 },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 8 },
   infoItem: { fontSize: 14, fontWeight: '600', color: '#555' },
+  sectionTitle: { marginTop: 8, marginBottom: 8, color: '#3366FF', fontWeight: 'bold', fontSize: 16 },
   label: { fontWeight: 'bold', color: '#3366FF', fontSize: 14 },
-  value: { fontSize: 14, color: '#333', lineHeight: 20 },
-  sectionTitle: { marginTop: 10, marginBottom: 8, color: '#3366FF', fontWeight: 'bold', fontSize: 16 },
+  value: { fontSize: 14, color: '#333', lineHeight: 22 },
 });
