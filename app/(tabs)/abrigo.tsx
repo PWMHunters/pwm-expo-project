@@ -48,17 +48,24 @@ export default function AbrigoScreen() {
   const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets(); 
 
+  // Busca fotos únicas, uma por vez, evitando cache repetido no celular
   const fetchUniqueDogs = async (count: number): Promise<string[]> => {
-    try {
-      const res = await fetch(`https://dog.ceo/api/breeds/image/random/${count}`);
-      const data = await res.json();
-      if (data.status === 'success' && Array.isArray(data.message)) {
-        return data.message;
+    const fotos: string[] = [];
+    for (let i = 0; i < count; i++) {
+      try {
+        const res = await fetch(`https://dog.ceo/api/breeds/image/random?ts=${Date.now()}-${i}`);
+        const data = await res.json();
+        if (data.status === 'success') {
+          fotos.push(data.message);
+        } else {
+          fotos.push(PLACEHOLDER);
+        }
+      } catch {
+        fotos.push(PLACEHOLDER);
       }
-      return Array(count).fill(PLACEHOLDER);
-    } catch {
-      return Array(count).fill(PLACEHOLDER);
+      await new Promise(res => setTimeout(res, 50)); // pausa rápida para evitar conflito
     }
+    return fotos;
   };
 
   useEffect(() => {
@@ -93,23 +100,36 @@ export default function AbrigoScreen() {
           <Image key={`${item.id}-${index}`} source={{ uri: fotoUrl }} style={styles.petFoto} resizeMode="cover" />
         ))}
       </View>
-      <TouchableOpacity style={styles.btn} onPress={() => router.push({ pathname: '/abrigo/[id]', params: { id: item.id, nome: item.nome, descricao: item.descricao, endereco: item.endereco, fotos: JSON.stringify(item.fotosPets), cnpj: '12.345.678/0001-99', telefone: '(31) 99999-8888', email: 'contato@abrigo.com', horario: 'Seg a Sex, 08h às 18h', }, })}>
+      <TouchableOpacity
+        style={styles.btn}
+        onPress={() => router.push({
+          pathname: '/abrigo/[id]',
+          params: {
+            id: item.id,
+            nome: item.nome,
+            descricao: item.descricao,
+            endereco: item.endereco,
+            fotos: JSON.stringify(item.fotosPets),
+            cnpj: '12.345.678/0001-99',
+            telefone: '(31) 99999-8888',
+            email: 'contato@abrigo.com',
+            horario: 'Seg a Sex, 08h às 18h',
+          },
+        })}
+      >
         <Text style={styles.btnTexto}>Conhecer abrigo</Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={[
-      styles.container, 
-      { paddingTop: insets.top > 0 ? insets.top + 10 : 40 } 
-    ]}>
+    <View style={[styles.container, { paddingTop: insets.top > 0 ? insets.top + 10 : 40 }]}>
       <Text style={styles.titulo}>🐶 Abrigos Parceiros</Text>
       <FlatList
         data={abrigos}
         keyExtractor={(item) => item.id}
         renderItem={renderAbrigo}
-        contentContainerStyle={{ paddingBottom: 100 }} 
+        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       />
     </View>
