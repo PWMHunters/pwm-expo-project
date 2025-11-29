@@ -1,7 +1,7 @@
-import React from 'react';
-import { Tabs } from 'expo-router';
-import { useTheme } from '@ui-kitten/components';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@ui-kitten/components';
+import { Tabs } from 'expo-router';
+import React from 'react';
 
 const TabIcon = ({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean }) => (
   <Ionicons
@@ -63,6 +63,13 @@ export default function TabLayout() {
         options={{
           title: 'Abrigos',
           tabBarIcon: ({ color, focused }) => <TabIcon name="paw" color={color} focused={focused} />, 
+        }}
+      />
+      <Tabs.Screen
+        name="membros"
+        options={{
+          title: 'Sobre',
+          tabBarIcon: ({ color, focused }) => <TabIcon name="information-circle" color={color} focused={focused} />, 
         }}
       />
       
